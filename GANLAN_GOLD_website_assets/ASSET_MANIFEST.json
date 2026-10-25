@@ -1,0 +1,226 @@
+{
+  "project": "GANLAN GOLD",
+  "source": "official V7 PDF 2026-10-25",
+  "files": [
+    {
+      "file": "PREVIEW.jpg",
+      "bytes": 159632,
+      "sha256": "46211666612ac6782f7281ff5b0270032f77af5c82f7cdc7929feb908f645b5e",
+      "width": 1400,
+      "height": 980
+    },
+    {
+      "file": "new_premium/hero-products-desktop.avif",
+      "bytes": 73000,
+      "sha256": "7c9aaeeb34de4b40f0b9c6fa018f94fc220fd715b97d327b17cfdb9bf369efc6",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "new_premium/hero-products-desktop.webp",
+      "bytes": 130582,
+      "sha256": "40a9521d5887ad1060c5dfeb62d882f34e90102f1ef9b415f983b5437406d1c9",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "new_premium/hero-products-mobile.avif",
+      "bytes": 55937,
+      "sha256": "ae4f330957f6042b333d9d2d8c826b83a14b415bb7839d7a569ee9ace2dbad97",
+      "width": 900,
+      "height": 1200
+    },
+    {
+      "file": "new_premium/hero-products-mobile.webp",
+      "bytes": 87096,
+      "sha256": "a7d8d2fad0dd87249c9587a27dfec4cebb8a762fa9d44560780f0a66c7e3a71e",
+      "width": 900,
+      "height": 1200
+    },
+    {
+      "file": "new_premium/olive-branch-gold.svg",
+      "bytes": 1325,
+      "sha256": "f6550369205cb81d91732b958b3251fb740fc5c81e515f80fb4caff3698eddf3"
+    },
+    {
+      "file": "new_premium/olive-grove-atmosphere.webp",
+      "bytes": 9776,
+      "sha256": "774ed0009ab735403111d4b40568b6cf5d26bca29851c0092422d7c815be8194",
+      "width": 1600,
+      "height": 800
+    },
+    {
+      "file": "new_premium/olive-pattern.svg",
+      "bytes": 463,
+      "sha256": "9051d277eb1f0050bc2f4423cda200bf68aec51d6d0eb1794c6f14726b4f2be7"
+    },
+    {
+      "file": "optimized/fouad-wechat-lossless.webp",
+      "bytes": 80396,
+      "sha256": "41d34f6f9adff9bd4099dca186c01635816412a7dfe815d818f3361c1374d3cc",
+      "width": 434,
+      "height": 419
+    },
+    {
+      "file": "optimized/fouad-wechat.png",
+      "bytes": 106088,
+      "sha256": "97234eb329de5c6280d20f0b38d286807ad42bfba473a7b8878b53f3634a1491",
+      "width": 434,
+      "height": 419
+    },
+    {
+      "file": "optimized/homepage-reference-only.webp",
+      "bytes": 292942,
+      "sha256": "390954b2d2b1211b13e72284aba04a963131baca4837c7a13180ffcde87d9774",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "file": "optimized/lassad-wechat-lossless.webp",
+      "bytes": 21648,
+      "sha256": "3e27f73eb83fdcf391155f23db771bc6b71a1f7098cd6253dfe4c9883579a0f8",
+      "width": 329,
+      "height": 327
+    },
+    {
+      "file": "optimized/lassad-wechat.png",
+      "bytes": 51853,
+      "sha256": "c68229ae0aaa15f9ab583f48ec7f48db8da9624121f06d8f80b524df53628fa5",
+      "width": 329,
+      "height": 327
+    },
+    {
+      "file": "optimized/product-250ml-2x-display-only.webp",
+      "bytes": 74896,
+      "sha256": "9f7c08813e1593fe755c16febd1b283570fff689eb988db29794ee5dadce0dc7",
+      "width": 724,
+      "height": 878
+    },
+    {
+      "file": "optimized/product-250ml.avif",
+      "bytes": 18801,
+      "sha256": "9ed795846cb2e6e8d4f3491fa0eb071086c0c05a07f9384d491a9f22c408577b",
+      "width": 362,
+      "height": 439
+    },
+    {
+      "file": "optimized/product-250ml.webp",
+      "bytes": 30028,
+      "sha256": "98b96448b2f9eb6747618d0087cb0bec4486c7c38e877b2bc81dacef53f3abed",
+      "width": 362,
+      "height": 439
+    },
+    {
+      "file": "optimized/product-500ml-2x-display-only.webp",
+      "bytes": 72802,
+      "sha256": "e21a200680d01c983a38c94957bfa0494faed1c83fea57d40ca078a39773db60",
+      "width": 726,
+      "height": 878
+    },
+    {
+      "file": "optimized/product-500ml.avif",
+      "bytes": 17891,
+      "sha256": "11869923d0ebc9b6c814db9b48838fd4796bcd066b171c8b1d56766d71da337d",
+      "width": 363,
+      "height": 439
+    },
+    {
+      "file": "optimized/product-500ml.webp",
+      "bytes": 28646,
+      "sha256": "f6f2ce337b9339ddcba8c8d2a96e6c429ff85d4b8ec3df67bbd307886845969a",
+      "width": 363,
+      "height": 439
+    },
+    {
+      "file": "optimized/product-5l-2x-display-only.webp",
+      "bytes": 128170,
+      "sha256": "fa47ffd0faeba8af49454c60d799bb6a055abfd04b9bdc8b90dd2e67fadb8ac2",
+      "width": 840,
+      "height": 878
+    },
+    {
+      "file": "optimized/product-5l.avif",
+      "bytes": 29621,
+      "sha256": "7eec6a3d1ad92cd2c3dfee89bd0ea37d2be5a1bb67aaf208c53ca97e4e4be6bd",
+      "width": 420,
+      "height": 439
+    },
+    {
+      "file": "optimized/product-5l.webp",
+      "bytes": 49778,
+      "sha256": "beb8a6a26ba627ecce05e05d2613fbf4cc85f0a71355a30388bff8ddbedc7e0c",
+      "width": 420,
+      "height": 439
+    },
+    {
+      "file": "optimized/product-750ml-2x-display-only.webp",
+      "bytes": 66580,
+      "sha256": "bcb90c41c1d8fb221952c1a53865494f08161bbadadfaaa2cfd11ad883a1f35d",
+      "width": 680,
+      "height": 878
+    },
+    {
+      "file": "optimized/product-750ml.avif",
+      "bytes": 17042,
+      "sha256": "4e6fcbb9da83be2d58c430ec52a6eebcdf7f59360496d6ffe4e85c47c3bc93f4",
+      "width": 340,
+      "height": 439
+    },
+    {
+      "file": "optimized/product-750ml.webp",
+      "bytes": 27164,
+      "sha256": "e1b0f4bb043d5581010beb63ae7b6d25b80c4b3ecc2d8ae263648bb0d530f5fd",
+      "width": 340,
+      "height": 439
+    },
+    {
+      "file": "originals/fouad-wechat.png",
+      "bytes": 106088,
+      "sha256": "97234eb329de5c6280d20f0b38d286807ad42bfba473a7b8878b53f3634a1491",
+      "width": 434,
+      "height": 419
+    },
+    {
+      "file": "originals/homepage-reference.jpeg",
+      "bytes": 461586,
+      "sha256": "fd7fdc12b3b459e231c00fe7bd5334b55c687a9c9a5431233a69c43d9e1fd836",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "file": "originals/lassad-wechat.png",
+      "bytes": 51853,
+      "sha256": "c68229ae0aaa15f9ab583f48ec7f48db8da9624121f06d8f80b524df53628fa5",
+      "width": 329,
+      "height": 327
+    },
+    {
+      "file": "originals/product-250ml.jpeg",
+      "bytes": 44495,
+      "sha256": "22071a4187d652d27f145d2d8dc5cf068d52c78de8c43c595c492cc567fdaad0",
+      "width": 362,
+      "height": 439
+    },
+    {
+      "file": "originals/product-500ml.jpeg",
+      "bytes": 43487,
+      "sha256": "9113d2ba08a2e6625f092ffa118d87528e3e4ff3784707c18162f39be9f61a9c",
+      "width": 363,
+      "height": 439
+    },
+    {
+      "file": "originals/product-5l.jpeg",
+      "bytes": 69095,
+      "sha256": "d417b9383d41df9fd80bf0c16f6a1429858349f24e534bc1c8c3ba33303fcdca",
+      "width": 420,
+      "height": 439
+    },
+    {
+      "file": "originals/product-750ml.jpeg",
+      "bytes": 40914,
+      "sha256": "a1f00721e461b2abcc1f27d04f6df4fb318ca0f56ea3d5f01ca45a15abd62730",
+      "width": 340,
+      "height": 439
+    }
+  ]
+}
