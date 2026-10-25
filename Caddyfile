@@ -1,0 +1,11 @@
+{
+	email {$ACME_EMAIL:off}
+}
+
+{$SITE_ADDRESS:http://localhost} {
+	encode zstd gzip
+	reverse_proxy app:3000
+	header {
+		-Server
+	}
+}

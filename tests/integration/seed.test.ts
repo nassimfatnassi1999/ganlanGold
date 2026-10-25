@@ -5,13 +5,15 @@ const integration = hasDatabase ? describe : describe.skip;
 
 integration("product seed", () => {
   let prisma: import("@prisma/client").PrismaClient;
+  let seedProducts: typeof import("../../prisma/seed").seedProducts;
 
   beforeAll(async () => {
     process.env.DATABASE_URL = process.env.TEST_DATABASE_URL;
-    const [{ createPrismaClient }, { seedProducts }] = await Promise.all([
+    const [{ createPrismaClient }, seedModule] = await Promise.all([
       import("../../src/lib/db/client"),
       import("../../prisma/seed"),
     ]);
+    seedProducts = seedModule.seedProducts;
     prisma = createPrismaClient(process.env.TEST_DATABASE_URL!);
     await seedProducts(prisma);
   });
@@ -29,5 +31,15 @@ integration("product seed", () => {
       ["750ml", 750, "10.10"],
       ["5l", 5000, "38.50"],
     ]);
+  });
+
+  it("does not overwrite a price maintained by an administrator on a later seed run", async () => {
+    await prisma.product.update({ where: { id: "500ml" }, data: { usdPrice: "7.31" } });
+    try {
+      await seedProducts(prisma);
+      expect((await prisma.product.findUniqueOrThrow({ where: { id: "500ml" } })).usdPrice.toFixed(2)).toBe("7.31");
+    } finally {
+      await prisma.product.update({ where: { id: "500ml" }, data: { usdPrice: "7.30" } });
+    }
   });
 });

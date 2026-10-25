@@ -14,7 +14,6 @@ export async function seedProducts(client: PrismaClient) {
     await client.product.upsert({
       where: { id: product.id },
       update: {
-        usdPrice: product.referenceUsd,
         imagePath: product.imagePath,
         displayOrder: product.displayOrder,
         professional: product.professional,
