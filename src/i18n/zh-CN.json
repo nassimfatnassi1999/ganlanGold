@@ -1,0 +1,134 @@
+{
+  "meta": {
+    "title": "GANLAN GOLD｜摩洛哥特级初榨橄榄油批发与出口",
+    "description": "面向中国进口商、经销商和专业采购商的摩洛哥橄榄油产品、出口服务、询价与产地考察信息。"
+  },
+  "nav": {
+    "products": "产品系列",
+    "wholesale": "批发订购",
+    "origin": "摩洛哥产地",
+    "visit": "预约考察",
+    "export": "出口服务",
+    "contact": "联系我们",
+    "quote": "申请询价",
+    "menu": "打开导航菜单"
+  },
+  "hero": {
+    "eyebrow": "摩洛哥 · 面向中国专业买家",
+    "title": "来自摩洛哥的天然馈赠",
+    "subtitle": "A Natural Gift from Morocco",
+    "description": "为中国进口商、经销商与专业采购商提供橄榄油选品、灌装协调及从摩洛哥出运的商业支持。",
+    "quote": "申请询价",
+    "explore": "查看产品"
+  },
+  "products": {
+    "eyebrow": "四种规格",
+    "title": "为不同专业渠道而备",
+    "subtitle": "Four formats for professional buyers",
+    "intro": "所有人民币价格均按欧洲中央银行参考汇率计算，仅供参考；最终商业报价以美元确认。",
+    "label": "摩洛哥特级初榨橄榄油",
+    "indicative": "人民币参考价",
+    "referenceUsd": "美元参考价",
+    "rateDate": "参考汇率日期",
+    "rateUnavailable": "人民币参考价暂不可用",
+    "request": "询价此规格",
+    "professional": "适用于专业客户",
+    "descriptions": {
+      "250ml": "紧凑规格，便于精致零售陈列与产品组合规划。",
+      "500ml": "兼顾零售陈列与家庭使用场景的核心瓶装规格。",
+      "750ml": "面向更大容量零售需求的经典瓶装规格。",
+      "5l": "面向餐饮、专业厨房及其他专业采购场景的大容量铁罐。"
+    }
+  },
+  "wholesale": {
+    "eyebrow": "批发订购",
+    "title": "统一的商业起订政策",
+    "subtitle": "One global commercial order policy",
+    "body": "最低订购量（MOQ）：7,500 升橄榄油。支持 250 毫升、500 毫升和 750 毫升混合订购。具体装柜方案以最终确认为准。",
+    "note": "该最低量适用于每笔订单的橄榄油总容量，并不构成对集装箱装载能力的保证。"
+  },
+  "origin": {
+    "eyebrow": "摩洛哥产地",
+    "title": "从橄榄园到可追溯批次",
+    "subtitle": "From Moroccan groves to traceable lots",
+    "body": "GANLAN GOLD 协调 Fouad 的农业经营与经筛选的周边橄榄种植者，通过明确的采购、批次追踪和质量控制准备流程，传递摩洛哥橄榄种植传统。",
+    "note": "具体批次来源以商业文件和最终确认信息为准。"
+  },
+  "visit": {
+    "eyebrow": "产地考察",
+    "title": "亲自了解我们的摩洛哥供应链",
+    "subtitle": "Arrange a professional visit in Morocco",
+    "body": "我们欢迎国际进口商与专业采购商提出橄榄园和生产设施考察申请。提交申请并不代表日期已获确认，我们将另行联系协调。",
+    "button": "申请考察",
+    "company": "公司名称",
+    "contactPerson": "联系人",
+    "country": "国家或地区",
+    "contact": "电子邮箱或微信联系方式",
+    "preferredPeriod": "期望考察日期或时间段",
+    "visitors": "预计人数",
+    "message": "补充说明",
+    "consent": "我同意 GANLAN GOLD 使用以上信息处理本次考察申请。",
+    "submit": "提交考察申请",
+    "success": "考察申请已收到。我们将使用您的申请编号与您联系协调；考察日期尚未确认。"
+  },
+  "export": {
+    "eyebrow": "出口服务",
+    "title": "清晰协调每一步摩洛哥出口准备",
+    "subtitle": "Clear coordination to the agreed Moroccan handover point",
+    "steps": {
+      "source": "橄榄油采购与批次协调",
+      "bottle": "灌装与质量控制准备",
+      "formalities": "适用的出口手续与文件准备",
+      "handover": "运送至约定的摩洛哥交货点"
+    },
+    "incoterm": "具体 Incoterm 须在报价中确认。若约定 FOB，交货义务为在指定摩洛哥港口将货物装上船；集装箱货物交付码头时，应与货运代理评估 FCA 是否更适用。",
+    "excluded": "所示出口价格不包含国际运费、适用的国际运输保险、中国清关、关税及进口税费，也不包含运送至中国买方仓库。",
+    "documents": "经确认可取得并适用时，商业文件可包括商业发票、装箱单、原产地证书、质量控制文件以及适用的出口和海关文件。"
+  },
+  "contact": {
+    "eyebrow": "联系团队",
+    "title": "从广州到摩洛哥，直接开始沟通",
+    "subtitle": "Speak with the GANLAN GOLD team",
+    "call": "致电",
+    "whatsapp": "WhatsApp 联系",
+    "wechatQr": "微信二维码",
+    "giseleRole": "中国广州本地联系人",
+    "lassadRole": "商业联系",
+    "fouadRole": "摩洛哥产地联系"
+  },
+  "quote": {
+    "eyebrow": "商业询价",
+    "title": "告诉我们您的采购计划",
+    "subtitle": "Request a non-binding commercial quotation",
+    "intro": "本表仅用于询价，不构成自动或具有法律约束力的报价。最终报价以美元确认，除非另有说明，有效期为 15 天。",
+    "company": "公司名称",
+    "country": "国家或地区",
+    "contactPerson": "联系人",
+    "email": "电子邮箱",
+    "wechat": "微信联系方式（选填）",
+    "destinationPort": "目的港",
+    "products": "意向产品与包装数量",
+    "quantity": "包装数量",
+    "message": "补充说明",
+    "consent": "我同意 GANLAN GOLD 使用以上信息处理本次询价。",
+    "submit": "提交询价",
+    "success": "询价已收到。请保存询价编号：",
+    "belowPolicy": "当前意向总量低于商业订购政策，请查看上方批发订购说明。"
+  },
+  "forms": {
+    "required": "必填",
+    "optional": "选填",
+    "errorTitle": "请检查以下内容",
+    "sending": "正在提交…",
+    "retry": "提交未完成，请检查信息后重试。",
+    "privacyLink": "隐私政策"
+  },
+  "footer": {
+    "description": "面向中国进口商、经销商与专业采购商的摩洛哥橄榄油商业合作。",
+    "privacy": "隐私政策",
+    "legal": "法律声明",
+    "terms": "商业信息",
+    "admin": "管理后台",
+    "notice": "产品图片、中文文案、标签与商业条件须在公开发布前完成相应审批。"
+  }
+}

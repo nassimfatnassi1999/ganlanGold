@@ -1,0 +1,134 @@
+{
+  "meta": {
+    "title": "GANLAN GOLD | Moroccan olive oil for professional buyers",
+    "description": "Moroccan olive-oil products, export coordination, quotation requests and professional visits for Chinese importers and distributors."
+  },
+  "nav": {
+    "products": "Products",
+    "wholesale": "Wholesale",
+    "origin": "Origin",
+    "visit": "Visit",
+    "export": "Export services",
+    "contact": "Contact",
+    "quote": "Request a Quote",
+    "menu": "Open navigation menu"
+  },
+  "hero": {
+    "eyebrow": "Morocco · For professional buyers in China",
+    "title": "A Natural Gift from Morocco",
+    "subtitle": "Moroccan olive oil for professional buyers",
+    "description": "Product sourcing, bottling coordination and Moroccan export support for Chinese importers, distributors and professional buyers.",
+    "quote": "Request a Quote",
+    "explore": "Explore Products"
+  },
+  "products": {
+    "eyebrow": "Four formats",
+    "title": "Prepared for professional channels",
+    "subtitle": "Four formats for professional buyers",
+    "intro": "All CNY values are indicative calculations using European Central Bank reference rates. The final commercial quotation is confirmed in USD.",
+    "label": "Moroccan extra virgin olive oil",
+    "indicative": "Indicative CNY",
+    "referenceUsd": "Reference USD",
+    "rateDate": "Reference-rate date",
+    "rateUnavailable": "Indicative CNY currently unavailable",
+    "request": "Request this format",
+    "professional": "For professional customers",
+    "descriptions": {
+      "250ml": "A compact format for refined retail presentation and assortment planning.",
+      "500ml": "A core bottle format balancing retail presentation and household use.",
+      "750ml": "A classic bottle format for higher-volume retail demand.",
+      "5l": "A larger tin for food service, professional kitchens and other professional purchasing needs."
+    }
+  },
+  "wholesale": {
+    "eyebrow": "Wholesale orders",
+    "title": "One commercial order policy",
+    "subtitle": "One global commercial order policy",
+    "body": "Minimum order quantity (MOQ): 7,500 litres of olive oil per order. Mixed 250 ml, 500 ml and 750 ml bottle sizes available. Loading plan subject to confirmation.",
+    "note": "The minimum applies to the total olive-oil volume per order and is not a guarantee of container capacity."
+  },
+  "origin": {
+    "eyebrow": "Moroccan origin",
+    "title": "From olive groves to traceable lots",
+    "subtitle": "From Moroccan groves to traceable lots",
+    "body": "GANLAN GOLD coordinates Fouad’s agricultural operation with selected neighboring olive growers through defined sourcing, lot traceability and quality-control preparation, grounded in Morocco’s olive-growing heritage.",
+    "note": "The origin of each lot remains subject to its commercial documentation and final confirmation."
+  },
+  "visit": {
+    "eyebrow": "Professional visits",
+    "title": "See the Moroccan supply chain firsthand",
+    "subtitle": "Arrange a professional visit in Morocco",
+    "body": "International importers and professional buyers may request a visit to the olive groves and production facilities. A request does not confirm a date; our team will contact you to coordinate.",
+    "button": "Request a Visit",
+    "company": "Company",
+    "contactPerson": "Contact person",
+    "country": "Country or region",
+    "contact": "Email or WeChat contact",
+    "preferredPeriod": "Preferred date or period",
+    "visitors": "Number of visitors",
+    "message": "Additional message",
+    "consent": "I consent to GANLAN GOLD using this information to handle my visit request.",
+    "submit": "Submit visit request",
+    "success": "Your visit request has been received. We will contact you using your request reference to coordinate; no visit date is confirmed yet."
+  },
+  "export": {
+    "eyebrow": "Export services",
+    "title": "Clear coordination for Moroccan export preparation",
+    "subtitle": "Clear coordination to the agreed Moroccan handover point",
+    "steps": {
+      "source": "Olive-oil sourcing and lot coordination",
+      "bottle": "Bottling and quality-control preparation",
+      "formalities": "Applicable export formalities and documentation preparation",
+      "handover": "Delivery to the agreed Moroccan handover point"
+    },
+    "incoterm": "The applicable Incoterm is confirmed in the quotation. Under FOB, delivery is completed when goods are loaded on board at the named Moroccan port. For container cargo handed to a terminal, FCA should be considered with the freight forwarder.",
+    "excluded": "Indicated export prices exclude international freight, applicable international transport insurance, Chinese customs clearance, duties and import taxes. Delivery to the buyer’s warehouse in China is not included.",
+    "documents": "Where confirmed available and applicable, commercial documentation may include the commercial invoice, packing list, certificate of origin, quality-control documentation and applicable export/customs documents."
+  },
+  "contact": {
+    "eyebrow": "Contact the team",
+    "title": "Start a direct conversation from Guangzhou to Morocco",
+    "subtitle": "Speak with the GANLAN GOLD team",
+    "call": "Call",
+    "whatsapp": "Contact on WhatsApp",
+    "wechatQr": "WeChat QR code",
+    "giseleRole": "Local contact in Guangzhou, China",
+    "lassadRole": "Commercial contact",
+    "fouadRole": "Moroccan origin contact"
+  },
+  "quote": {
+    "eyebrow": "Commercial inquiry",
+    "title": "Tell us about your purchasing plan",
+    "subtitle": "Request a non-binding commercial quotation",
+    "intro": "This form is an inquiry mechanism, not an automatic or legally binding quotation. The final quotation is confirmed in USD and is valid for 15 days unless otherwise specified.",
+    "company": "Company name",
+    "country": "Country or region",
+    "contactPerson": "Contact person",
+    "email": "Email",
+    "wechat": "WeChat contact (optional)",
+    "destinationPort": "Destination port",
+    "products": "Products and package quantities",
+    "quantity": "Package quantity",
+    "message": "Additional message",
+    "consent": "I consent to GANLAN GOLD using this information to handle my quotation request.",
+    "submit": "Submit quote request",
+    "success": "Your inquiry has been received. Please keep your request reference: ",
+    "belowPolicy": "The requested total is below the commercial order policy; please review the wholesale-order section above."
+  },
+  "forms": {
+    "required": "Required",
+    "optional": "Optional",
+    "errorTitle": "Please check the following",
+    "sending": "Submitting…",
+    "retry": "The request was not completed. Check the information and try again.",
+    "privacyLink": "Privacy policy"
+  },
+  "footer": {
+    "description": "Moroccan olive-oil partnerships for Chinese importers, distributors and professional buyers.",
+    "privacy": "Privacy Policy",
+    "legal": "Legal Notice",
+    "terms": "Commercial Information",
+    "admin": "Administration",
+    "notice": "Product imagery, Chinese copy, labels and commercial conditions require the relevant approvals before public launch."
+  }
+}
