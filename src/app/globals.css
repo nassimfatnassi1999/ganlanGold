@@ -160,6 +160,102 @@ button,
   transform: translateY(0);
 }
 
+.admin-login-shell {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  padding: var(--space-gutter);
+  background:
+    linear-gradient(135deg, rgb(13 40 28 / 0.97), rgb(23 62 43 / 0.9)),
+    url("/images/groves/olive-grove-atmosphere.webp") center / cover;
+}
+
+.admin-login-card {
+  width: min(100%, 30rem);
+  padding: clamp(2rem, 6vw, 3.5rem);
+  border: 1px solid rgb(220 193 131 / 0.55);
+  border-radius: var(--card-radius);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.admin-wordmark {
+  color: var(--color-primary);
+  font-family: Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-decoration: none;
+}
+
+.eyebrow {
+  margin-top: var(--space-8);
+  color: var(--olive-700);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.english-subtitle {
+  margin-top: var(--space-2);
+  color: var(--color-muted-foreground);
+}
+
+.admin-login-form {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+}
+
+.admin-login-form label {
+  display: grid;
+  margin-top: var(--space-2);
+  color: var(--color-primary);
+  font-weight: 650;
+}
+
+.admin-login-form label small {
+  color: var(--color-muted-foreground);
+  font-weight: 400;
+}
+
+.admin-login-form input {
+  min-height: var(--input-height);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--input-radius);
+  background: var(--white);
+}
+
+.admin-login-form button {
+  min-height: var(--button-height);
+  margin-top: var(--space-4);
+  border: 0;
+  border-radius: var(--button-radius);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: 700;
+}
+
+.admin-login-form button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.form-alert {
+  padding: var(--space-3) var(--space-4);
+  border-left: 3px solid var(--color-danger);
+  background: rgb(155 44 44 / 0.08);
+  color: var(--color-danger);
+}
+
+.admin-login-note {
+  margin-top: var(--space-6);
+  color: var(--color-muted-foreground);
+  font-size: 0.875rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
