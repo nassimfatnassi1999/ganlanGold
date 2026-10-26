@@ -4,6 +4,8 @@
     "description": "面向中国进口商、经销商和专业采购商的摩洛哥橄榄油产品、出口服务、询价与产地考察信息。"
   },
   "nav": {
+    "main": "主要导航",
+    "home": "GANLAN GOLD 首页",
     "products": "产品系列",
     "wholesale": "批发订购",
     "origin": "摩洛哥产地",
@@ -25,12 +27,12 @@
     "eyebrow": "四种规格",
     "title": "为不同专业渠道而备",
     "subtitle": "Four formats for professional buyers",
-    "intro": "所有人民币价格均按欧洲中央银行参考汇率计算，仅供参考；最终商业报价以美元确认。",
+    "intro": "人民币及美元均为手动更新的参考价格；最终商业报价以美元确认。",
     "label": "摩洛哥特级初榨橄榄油",
-    "indicative": "人民币参考价",
+    "indicative": "人民币参考价 · 固定展示",
     "referenceUsd": "美元参考价",
-    "rateDate": "参考汇率日期",
-    "rateUnavailable": "人民币参考价暂不可用",
+    "priceLoading": "价格加载中…",
+    "priceUnavailable": "价格暂不可用",
     "request": "询价此规格",
     "professional": "适用于专业客户",
     "descriptions": {
@@ -52,7 +54,8 @@
     "title": "从橄榄园到可追溯批次",
     "subtitle": "From Moroccan groves to traceable lots",
     "body": "GANLAN GOLD 协调 Fouad 的农业经营与经筛选的周边橄榄种植者，通过明确的采购、批次追踪和质量控制准备流程，传递摩洛哥橄榄种植传统。",
-    "note": "具体批次来源以商业文件和最终确认信息为准。"
+    "note": "具体批次来源以商业文件和最终确认信息为准。",
+    "steps": ["采购协调", "批次追踪", "质量准备"]
   },
   "visit": {
     "eyebrow": "产地考察",
@@ -68,8 +71,8 @@
     "visitors": "预计人数",
     "message": "补充说明",
     "consent": "我同意 GANLAN GOLD 使用以上信息处理本次考察申请。",
-    "submit": "提交考察申请",
-    "success": "考察申请已收到。我们将使用您的申请编号与您联系协调；考察日期尚未确认。"
+    "submit": "准备考察申请",
+    "success": "请通过 WhatsApp 发送，或复制内容后通过微信联系。考察日期尚未确认。"
   },
   "export": {
     "eyebrow": "出口服务",
@@ -83,7 +86,10 @@
     },
     "incoterm": "具体 Incoterm 须在报价中确认。若约定 FOB，交货义务为在指定摩洛哥港口将货物装上船；集装箱货物交付码头时，应与货运代理评估 FCA 是否更适用。",
     "excluded": "所示出口价格不包含国际运费、适用的国际运输保险、中国清关、关税及进口税费，也不包含运送至中国买方仓库。",
-    "documents": "经确认可取得并适用时，商业文件可包括商业发票、装箱单、原产地证书、质量控制文件以及适用的出口和海关文件。"
+    "documents": "经确认可取得并适用时，商业文件可包括商业发票、装箱单、原产地证书、质量控制文件以及适用的出口和海关文件。",
+    "incotermTitle": "交货规则",
+    "excludedTitle": "价格不包含",
+    "documentsTitle": "商业文件"
   },
   "contact": {
     "eyebrow": "联系团队",
@@ -111,9 +117,10 @@
     "quantity": "包装数量",
     "message": "补充说明",
     "consent": "我同意 GANLAN GOLD 使用以上信息处理本次询价。",
-    "submit": "提交询价",
-    "success": "询价已收到。请保存询价编号：",
-    "belowPolicy": "当前意向总量低于商业订购政策，请查看上方批发订购说明。"
+    "submit": "准备询价信息",
+    "success": "请通过 WhatsApp 发送，或复制内容后通过微信联系。信息尚未自动发送。",
+    "belowPolicy": "当前意向总量低于商业订购政策，请查看上方批发订购说明。",
+    "benefits": ["多规格选择", "美元最终确认", "专人跟进"]
   },
   "forms": {
     "required": "必填",
@@ -121,7 +128,22 @@
     "errorTitle": "请检查以下内容",
     "sending": "正在提交…",
     "retry": "提交未完成，请检查信息后重试。",
-    "privacyLink": "隐私政策"
+    "privacyLink": "隐私政策",
+    "requiredFields": "请填写所有必填信息。",
+    "contactRequired": "请提供电子邮箱或微信联系方式。",
+    "invalidEmail": "请输入有效的电子邮箱。",
+    "productRequired": "请选择至少一种产品并填写包装数量。",
+    "consentRequired": "请确认隐私同意。",
+    "visitorsRange": "预计人数须为 1 至 50。",
+    "quantity": "包装数量",
+    "whatsappQuote": "打开 WhatsApp 联系 Lassad",
+    "whatsappVisit": "打开 WhatsApp 联系 Fouad",
+    "copy": "复制信息供微信发送",
+    "copied": "已复制",
+    "quoteNotSent": "您的询价尚未发送。请选择 WhatsApp，或复制内容后通过微信发送。",
+    "visitNotSent": "您的考察申请尚未发送。请通过 WhatsApp 发送，或复制后通过微信联系；考察日期尚未确认。",
+    "dispatchNote": "此静态网站不会自动发送或存储申请。请使用生成的 WhatsApp 链接，或复制信息并通过微信联系。",
+    "copyError": "无法自动复制。请手动选择并复制下方信息。"
   },
   "footer": {
     "description": "面向中国进口商、经销商与专业采购商的摩洛哥橄榄油商业合作。",

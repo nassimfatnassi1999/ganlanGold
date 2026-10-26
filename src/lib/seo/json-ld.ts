@@ -26,13 +26,6 @@ type ProductJsonLd = Readonly<{
   image: string;
   size: string;
   brand: Readonly<{ "@type": "Brand"; name: "GANLAN GOLD" }>;
-  offers: Readonly<{
-    "@type": "Offer";
-    url: string;
-    price: string;
-    priceCurrency: "USD";
-    seller: Readonly<{ "@id": string }>;
-  }>;
 }>;
 
 export function buildSiteJsonLd(siteUrl: string): Readonly<{
@@ -82,13 +75,6 @@ export function buildSiteJsonLd(siteUrl: string): Readonly<{
       image: new URL(product.imagePath, origin).toString(),
       size,
       brand: { "@type": "Brand", name: "GANLAN GOLD" },
-      offers: {
-        "@type": "Offer",
-        url: `${origin}/#products`,
-        price: product.referenceUsd,
-        priceCurrency: "USD",
-        seller: { "@id": organizationId },
-      },
     };
   });
 

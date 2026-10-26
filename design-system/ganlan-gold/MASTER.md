@@ -8,7 +8,7 @@
 
 ## Experience principles
 
-1. Chinese is the first reading layer; English is a smaller explanatory layer.
+1. Chinese is the default reading language; visitors can switch the complete interface to English without duplicated bilingual blocks.
 2. Real products, rates, dates, contacts, and workflow states replace decorative filler.
 3. Editorial warmth supports commercial precision; all obligations and exclusions stay legible.
 4. The experience works without motion, remote fonts, Google services, or client-side currency calls.
@@ -65,9 +65,16 @@ Spacing uses a 4 px base: `4, 8, 12, 16, 24, 32, 48, 64, 96, 128`. Radii are `12
 
 ## Motion
 
-- Only opacity and 8–12 px transforms for entry/state feedback; 180–380 ms depending on distance.
-- No parallax, autoplay, scroll locking, or correctness that depends on `animationend`.
+- Use restrained opacity, directional translation, and shallow perspective for section and product reveals; content remains present in the server-rendered HTML.
+- The hero may use a subtle CSS scroll-linked depth shift on larger screens. Disable it on mobile and never use autoplay, scroll locking, or correctness that depends on `animationend`.
 - `prefers-reduced-motion: reduce` removes nonessential motion and preserves complete final content.
+
+## Language state
+
+- Supported locales are `zh-CN` and `en`; `zh-CN` is the first-visit default.
+- The `中文 | EN` switcher persists the choice in `localStorage` under `ganlan-language` and keeps the root `lang` attribute synchronized.
+- A small pre-paint script applies a valid stored choice before hydration, preventing a wrong-language flash; invalid values fall back to Chinese.
+- Shared dictionaries and one component tree are mandatory. Do not fork the page or show both translations at once.
 
 ## Accessibility and interaction
 

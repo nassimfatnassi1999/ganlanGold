@@ -4,6 +4,8 @@
     "description": "Moroccan olive-oil products, export coordination, quotation requests and professional visits for Chinese importers and distributors."
   },
   "nav": {
+    "main": "Main navigation",
+    "home": "GANLAN GOLD home",
     "products": "Products",
     "wholesale": "Wholesale",
     "origin": "Origin",
@@ -25,12 +27,12 @@
     "eyebrow": "Four formats",
     "title": "Prepared for professional channels",
     "subtitle": "Four formats for professional buyers",
-    "intro": "All CNY values are indicative calculations using European Central Bank reference rates. The final commercial quotation is confirmed in USD.",
+    "intro": "CNY and USD are fixed indicative prices updated manually. Final quotations are confirmed in USD.",
     "label": "Moroccan extra virgin olive oil",
-    "indicative": "Indicative CNY",
+    "indicative": "Indicative CNY price · Fixed",
     "referenceUsd": "Reference USD",
-    "rateDate": "Reference-rate date",
-    "rateUnavailable": "Indicative CNY currently unavailable",
+    "priceLoading": "Loading prices…",
+    "priceUnavailable": "Price temporarily unavailable",
     "request": "Request this format",
     "professional": "For professional customers",
     "descriptions": {
@@ -52,7 +54,8 @@
     "title": "From olive groves to traceable lots",
     "subtitle": "From Moroccan groves to traceable lots",
     "body": "GANLAN GOLD coordinates Fouad’s agricultural operation with selected neighboring olive growers through defined sourcing, lot traceability and quality-control preparation, grounded in Morocco’s olive-growing heritage.",
-    "note": "The origin of each lot remains subject to its commercial documentation and final confirmation."
+    "note": "The origin of each lot remains subject to its commercial documentation and final confirmation.",
+    "steps": ["Sourcing", "Traceability", "Quality control"]
   },
   "visit": {
     "eyebrow": "Professional visits",
@@ -68,8 +71,8 @@
     "visitors": "Number of visitors",
     "message": "Additional message",
     "consent": "I consent to GANLAN GOLD using this information to handle my visit request.",
-    "submit": "Submit visit request",
-    "success": "Your visit request has been received. We will contact you using your request reference to coordinate; no visit date is confirmed yet."
+    "submit": "Prepare visit request",
+    "success": "Send through WhatsApp or copy the request for WeChat. The visit date is not confirmed."
   },
   "export": {
     "eyebrow": "Export services",
@@ -83,7 +86,10 @@
     },
     "incoterm": "The applicable Incoterm is confirmed in the quotation. Under FOB, delivery is completed when goods are loaded on board at the named Moroccan port. For container cargo handed to a terminal, FCA should be considered with the freight forwarder.",
     "excluded": "Indicated export prices exclude international freight, applicable international transport insurance, Chinese customs clearance, duties and import taxes. Delivery to the buyer’s warehouse in China is not included.",
-    "documents": "Where confirmed available and applicable, commercial documentation may include the commercial invoice, packing list, certificate of origin, quality-control documentation and applicable export/customs documents."
+    "documents": "Where confirmed available and applicable, commercial documentation may include the commercial invoice, packing list, certificate of origin, quality-control documentation and applicable export/customs documents.",
+    "incotermTitle": "Incoterms",
+    "excludedTitle": "Exclusions",
+    "documentsTitle": "Documents"
   },
   "contact": {
     "eyebrow": "Contact the team",
@@ -111,9 +117,10 @@
     "quantity": "Package quantity",
     "message": "Additional message",
     "consent": "I consent to GANLAN GOLD using this information to handle my quotation request.",
-    "submit": "Submit quote request",
-    "success": "Your inquiry has been received. Please keep your request reference: ",
-    "belowPolicy": "The requested total is below the commercial order policy; please review the wholesale-order section above."
+    "submit": "Prepare inquiry",
+    "success": "Send through WhatsApp or copy the message for WeChat. Nothing has been sent automatically.",
+    "belowPolicy": "The requested total is below the commercial order policy; please review the wholesale-order section above.",
+    "benefits": ["Multi-format selection", "Final confirmation in USD", "Personal follow-up"]
   },
   "forms": {
     "required": "Required",
@@ -121,7 +128,22 @@
     "errorTitle": "Please check the following",
     "sending": "Submitting…",
     "retry": "The request was not completed. Check the information and try again.",
-    "privacyLink": "Privacy policy"
+    "privacyLink": "Privacy policy",
+    "requiredFields": "Complete all required fields.",
+    "contactRequired": "Provide email or WeChat.",
+    "invalidEmail": "Enter a valid email.",
+    "productRequired": "Select at least one product and quantity.",
+    "consentRequired": "Privacy consent is required.",
+    "visitorsRange": "Visitors must be between 1 and 50.",
+    "quantity": "Package quantity",
+    "whatsappQuote": "Open WhatsApp for Lassad",
+    "whatsappVisit": "Open WhatsApp for Fouad",
+    "copy": "Copy for WeChat",
+    "copied": "Copied",
+    "quoteNotSent": "Your inquiry has not been sent. Choose WhatsApp, or copy the text and send it through WeChat.",
+    "visitNotSent": "Your visit request has not been sent. Use WhatsApp or copy it for WeChat; no visit date has been confirmed.",
+    "dispatchNote": "This static website does not send or store requests automatically. Use the prepared WhatsApp link or copy the message for WeChat.",
+    "copyError": "Automatic copying is unavailable. Select and copy the prepared message manually."
   },
   "footer": {
     "description": "Moroccan olive-oil partnerships for Chinese importers, distributors and professional buyers.",

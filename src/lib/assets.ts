@@ -12,11 +12,11 @@ export const ASSET_PATHS = {
     mobileWebp: "images/hero/products-mobile.webp",
   },
   brand: {
-    oliveBranch: "images/brand/olive-branch-gold.svg",
     olivePattern: "images/brand/olive-pattern.svg",
   },
   groves: {
     atmosphere: "images/groves/olive-grove-atmosphere.webp",
+    origin: "images/groves/moroccan-groves-sharp.webp",
   },
   qr: {
     lassad: "images/qr/lassad-wechat.png",

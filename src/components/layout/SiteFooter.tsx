@@ -1,5 +1,6 @@
 import zh from "@/i18n/zh-CN.json";
 import en from "@/i18n/en.json";
+import { TranslatedText } from "@/i18n/TranslatedText";
 
 export function SiteFooter() {
   return (
@@ -10,19 +11,17 @@ export function SiteFooter() {
             <span>GANLAN GOLD</span>
             <small>Moroccan Olive Oil</small>
           </a>
-          <p>{zh.footer.description}</p>
-          <p className="footer-english" lang="en">{en.footer.description}</p>
+          <p><TranslatedText zh={zh.footer.description} en={en.footer.description} /></p>
         </div>
         <nav aria-label="法律与管理链接">
-          <a href="/privacy">{zh.footer.privacy}<small lang="en">{en.footer.privacy}</small></a>
-          <a href="/legal">{zh.footer.legal}<small lang="en">{en.footer.legal}</small></a>
-          <a href="/terms">{zh.footer.terms}<small lang="en">{en.footer.terms}</small></a>
-          <a href="/admin">{zh.footer.admin}<small lang="en">{en.footer.admin}</small></a>
+          <a href="/privacy"><TranslatedText zh={zh.footer.privacy} en={en.footer.privacy} /></a>
+          <a href="/legal"><TranslatedText zh={zh.footer.legal} en={en.footer.legal} /></a>
+          <a href="/terms"><TranslatedText zh={zh.footer.terms} en={en.footer.terms} /></a>
         </nav>
       </div>
       <div className="footer-bottom">
         <p>© {new Date().getFullYear()} GANLAN GOLD</p>
-        <p>{zh.footer.notice}</p>
+        <p><TranslatedText zh={zh.footer.notice} en={en.footer.notice} /></p>
       </div>
     </footer>
   );

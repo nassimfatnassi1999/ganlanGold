@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import zh from "@/i18n/zh-CN.json";
 import { buildSiteJsonLd, serializeJsonLd } from "@/lib/seo/json-ld";
 import { getSiteUrl } from "@/lib/seo/site-url";
+import { LanguageProvider } from "@/i18n/LanguageProvider";
 import "./globals.css";
 
 const siteUrl = getSiteUrl();
@@ -39,13 +40,20 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   const jsonLd = serializeJsonLd(buildSiteJsonLd(siteUrl));
   return (
-    <html lang="zh-CN" data-scroll-behavior="smooth">
+    <html lang="zh-CN" data-language="zh-CN" data-scroll-behavior="smooth" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var k="ganlan-language",v=localStorage.getItem(k),l=v==="en"||v==="zh-CN"?v:"zh-CN";document.documentElement.lang=l;document.documentElement.dataset.language=l}catch(e){document.documentElement.lang="zh-CN";document.documentElement.dataset.language="zh-CN"}})()`,
+          }}
+        />
+      </head>
       <body>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
         <a className="skip-link" href="#main-content">
           跳至主要内容 / Skip to content
         </a>
-        {children}
+        <LanguageProvider>{children}</LanguageProvider>
       </body>
     </html>
   );

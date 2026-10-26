@@ -1,26 +1,47 @@
 "use client";
 
 import zh from "@/i18n/zh-CN.json";
+import en from "@/i18n/en.json";
+import { useLanguage } from "@/i18n/LanguageProvider";
 import { TextAreaField, TextField } from "./FormField";
 import { text, useLeadForm } from "./useLeadForm";
 
 export function VisitForm() {
-  const { state, submit, hydrated } = useLeadForm({
-    endpoint: "/api/visits",
+  const { language } = useLanguage();
+  const t = language === "zh-CN" ? zh : en;
+  const { state, submit, hydrated, copyPreparedMessage } = useLeadForm<{
+    company: string; contactPerson: string; country: string; email?: string; wechat?: string;
+    preferredPeriod: string; visitors?: number; message?: string; consent: true; website: string;
+  }>({
+    kind: "visit",
+    format(data) {
+      return [
+        language === "zh-CN" ? "GANLAN GOLD — 产地考察" : "GANLAN GOLD — Olive grove visit request",
+        `Company: ${data.company}`,
+        `Contact: ${data.contactPerson}`,
+        `Country: ${data.country}`,
+        `Email: ${data.email || "—"}`,
+        `WeChat: ${data.wechat || "—"}`,
+        `Preferred period: ${data.preferredPeriod}`,
+        `Visitors: ${data.visitors || "Not specified"}`,
+        `Message: ${data.message || "—"}`,
+        language === "zh-CN" ? "考察日期须另行确认。" : "Visit date is subject to confirmation.",
+      ].join("\n");
+    },
     validate(form) {
       const values = new FormData(form);
       const errors: string[] = [];
       for (const key of ["company", "contactPerson", "country", "preferredPeriod"]) {
-        if (!text(values, key)) errors.push("请填写所有必填信息。 / Complete all required fields.");
+        if (!text(values, key)) errors.push(t.forms.requiredFields);
       }
       const email = text(values, "email");
       const wechat = text(values, "wechat");
-      if (!email && !wechat) errors.push("请提供电子邮箱或微信联系方式。 / Provide email or WeChat.");
-      if (email && !/^\S+@\S+\.\S+$/.test(email)) errors.push("请输入有效的电子邮箱。 / Enter a valid email.");
-      if (values.get("consent") !== "on") errors.push("请确认隐私同意。 / Privacy consent is required.");
+      if (!email && !wechat) errors.push(t.forms.contactRequired);
+      if (email && !/^\S+@\S+\.\S+$/.test(email)) errors.push(t.forms.invalidEmail);
+      if (values.get("consent") !== "on") errors.push(t.forms.consentRequired);
       const visitors = text(values, "visitors");
       if (visitors && (!Number.isInteger(Number(visitors)) || Number(visitors) < 1 || Number(visitors) > 50)) {
-        errors.push("预计人数须为 1 至 50。 / Visitors must be between 1 and 50.");
+        errors.push(t.forms.visitorsRange);
       }
       return {
         errors: [...new Set(errors)],
@@ -43,11 +64,16 @@ export function VisitForm() {
   });
   return (
     <form className="lead-form lead-form--dark" noValidate onSubmit={submit}>
-      {state.status === "error" ? <div className="form-summary" role="alert"><strong>{zh.forms.errorTitle}</strong><ul>{state.errors.map((error) => <li key={error}>{error}</li>)}</ul></div> : null}
-      {state.status === "success" ? (
-        <div className="form-success" role="status">
-          <strong>{zh.visit.success} 申请编号：{state.result.requestId}</strong>
-          <span lang="en">Request received. Your visit date is not confirmed.</span>
+      {state.status === "error" ? <div className="form-summary" role="alert"><strong>{t.forms.errorTitle}</strong><ul>{state.errors.map((error) => <li key={error}>{error}</li>)}</ul></div> : null}
+      {state.status === "ready" ? (
+        <div className="lead-handoff" role="status">
+          <strong>{t.visit.success}</strong>
+          <p>{t.forms.visitNotSent}</p>
+          <div className="lead-handoff-actions">
+            <a className="button button--gold" href={state.whatsappUrl} target="_blank" rel="noopener noreferrer">{t.forms.whatsappVisit}</a>
+            <button type="button" className="button button--outline" onClick={copyPreparedMessage}>{state.copied ? t.forms.copied : t.forms.copy}</button>
+          </div>
+          <pre className="lead-message-preview">{state.message}</pre>
         </div>
       ) : null}
       <div className="form-grid">
@@ -61,10 +87,11 @@ export function VisitForm() {
       </div>
       <TextAreaField id="visit-message" name="message" label="补充说明" english="Additional message" optional rows={4} />
       <div className="honeypot" aria-hidden="true"><label>Website<input name="website" tabIndex={-1} autoComplete="off" /></label></div>
-      <label className="consent-row"><input type="checkbox" name="consent" /><span>{zh.visit.consent} <a href="/privacy">{zh.forms.privacyLink}</a></span></label>
-      <button className="button button--gold form-submit" type="submit" disabled={!hydrated || state.status === "submitting"}>
-        {state.status === "submitting" ? zh.forms.sending : zh.visit.submit}
+      <label className="consent-row"><input type="checkbox" name="consent" /><span>{t.visit.consent} <a href="/privacy">{t.forms.privacyLink}</a></span></label>
+      <button className="button button--gold form-submit" type="submit" disabled={!hydrated}>
+        {t.visit.submit}
       </button>
+      <p className="form-dispatch-note">{t.forms.dispatchNote}</p>
     </form>
   );
 }

@@ -1,64 +1,96 @@
+"use client";
+
 import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
-import { calculateIndicativeCny } from "@/lib/currency/calculate";
+import { useEffect, useState } from "react";
 import zh from "@/i18n/zh-CN.json";
 import en from "@/i18n/en.json";
 import { BilingualHeading } from "@/components/ui/BilingualHeading";
-import type { PublicProduct, PublicRate } from "@/components/sections/PublicExperience";
+import type { PublicProduct } from "@/components/sections/PublicExperience";
+import { TranslatedText } from "@/i18n/TranslatedText";
+import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import { loadPriceConfig, type PriceConfig } from "@/lib/prices";
+
+type PriceState =
+  | Readonly<{ status: "loading" }>
+  | Readonly<{ status: "loaded"; prices: PriceConfig }>
+  | Readonly<{ status: "unavailable" }>;
 
 function capacityLabel(id: PublicProduct["id"]) {
   return id === "5l" ? "5 L" : id.replace("ml", " ml");
 }
 
-export function ProductShowcase({ products, rate }: { products: readonly PublicProduct[]; rate: PublicRate }) {
+export function ProductShowcase({ products }: { products: readonly PublicProduct[] }) {
+  const [priceState, setPriceState] = useState<PriceState>({ status: "loading" });
+
+  useEffect(() => {
+    const controller = new AbortController();
+    loadPriceConfig(controller.signal)
+      .then((prices) => setPriceState({ status: "loaded", prices }))
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        setPriceState({ status: "unavailable" });
+      });
+    return () => controller.abort();
+  }, []);
+
   return (
-    <section id="products" className="section products-section" aria-label={zh.nav.products}>
+    <section id="products" className="section products-section" aria-labelledby="products-title">
       <div className="section-inner">
         <BilingualHeading
+          id="products-title"
           eyebrow={zh.products.eyebrow}
+          englishEyebrow={en.products.eyebrow}
           title={zh.products.title}
-          english={en.products.subtitle}
+          english={en.products.title}
           align="center"
         />
-        <p className="section-intro section-intro--center">{zh.products.intro}</p>
+        <p className="section-intro section-intro--center"><TranslatedText zh={zh.products.intro} en={en.products.intro} /></p>
         <div className="product-list">
           {products.map((product, index) => {
-            const cny = rate.status === "available" ? calculateIndicativeCny(product.referenceUsd, rate.usdCny) : null;
+            const price = priceState.status === "loaded" ? priceState.prices[product.id] : null;
             return (
-              <article className={`product-row${index % 2 ? " product-row--reverse" : ""}`} key={product.id}>
+              <ScrollReveal
+                as="article"
+                className={`product-row${index % 2 ? " product-row--reverse" : ""}`}
+                direction={index % 2 ? "right" : "left"}
+                key={product.id}
+              >
                 <div className={`product-visual${product.id === "5l" ? " product-visual--tin" : ""}`}>
-                  <span className="product-index" aria-hidden="true">0{index + 1}</span>
                   <Image
                     src={product.imagePath}
-                    width={product.id === "5l" ? 560 : 420}
-                    height={540}
-                    sizes="(max-width: 767px) 72vw, 38vw"
+                    fill
+                    sizes="(max-width: 767px) calc(100vw - 40px), (max-width: 1280px) 46vw, 580px"
+                    loading="lazy"
                     alt={`${capacityLabel(product.id)} ${zh.products.label}`}
                   />
                 </div>
                 <div className="product-copy">
-                  <p className="product-kicker">GANLAN GOLD · {zh.products.label}</p>
+                  <p className="product-kicker">GANLAN GOLD · <TranslatedText zh={zh.products.label} en={en.products.label} /></p>
                   <h3>{capacityLabel(product.id)}</h3>
-                  <p className="product-description">{product.zhDescription}</p>
-                  <p className="product-description product-description--en" lang="en">{product.enDescription}</p>
-                  {product.professional ? <span className="product-badge">{zh.products.professional}</span> : null}
-                  <div className="price-block">
-                    {cny === null || rate.status !== "available" ? (
-                      <p className="price-unavailable">{zh.products.rateUnavailable}<small lang="en">{en.products.rateUnavailable}</small></p>
-                    ) : (
+                  <p className="product-description"><TranslatedText zh={product.zhDescription} en={product.enDescription} /></p>
+                  {product.professional ? <span className="product-badge"><TranslatedText zh={zh.products.professional} en={en.products.professional} /></span> : null}
+                  <div className="price-block" aria-live="polite">
+                    <p className="price-label"><TranslatedText zh={zh.products.indicative} en={en.products.indicative} /></p>
+                    {price ? (
                       <>
-                        <p className="price-label">{zh.products.indicative} <small lang="en">{en.products.indicative}</small></p>
-                        <p className="price-cny">¥{cny}</p>
-                        <p className="rate-date">{zh.products.rateDate}：{rate.referenceDate}</p>
+                        <p className="price-cny">¥{price.cny}</p>
+                        <p className="price-usd"><TranslatedText zh={zh.products.referenceUsd} en={en.products.referenceUsd} /> · USD ${price.usd}</p>
                       </>
+                    ) : (
+                      <p className="price-unavailable">
+                        <TranslatedText
+                          zh={priceState.status === "loading" ? zh.products.priceLoading : zh.products.priceUnavailable}
+                          en={priceState.status === "loading" ? en.products.priceLoading : en.products.priceUnavailable}
+                        />
+                      </p>
                     )}
-                    <p className="price-usd">{zh.products.referenceUsd} · USD ${product.referenceUsd}</p>
                   </div>
                   <a className="text-link" href={`#quote`}>
-                    {zh.products.request}<ArrowUpRight size={18} aria-hidden="true" />
+                    <TranslatedText zh={zh.products.request} en={en.products.request} /><ArrowUpRight size={18} aria-hidden="true" />
                   </a>
                 </div>
-              </article>
+              </ScrollReveal>
             );
           })}
         </div>

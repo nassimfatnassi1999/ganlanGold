@@ -1,9 +1,14 @@
 import { PublicExperience } from "@/components/sections/PublicExperience";
-import { loadPublicProducts, loadPublicRate } from "@/lib/public-site";
+import { PRODUCT_SPECS } from "@/lib/products/catalog";
+import zh from "@/i18n/zh-CN.json";
+import en from "@/i18n/en.json";
 
-export const dynamic = "force-dynamic";
+const products = PRODUCT_SPECS.map((product) => ({
+  ...product,
+  zhDescription: zh.products.descriptions[product.id],
+  enDescription: en.products.descriptions[product.id],
+}));
 
-export default async function HomePage() {
-  const [products, rate] = await Promise.all([loadPublicProducts(), loadPublicRate()]);
-  return <PublicExperience products={products} rate={rate} />;
+export default function HomePage() {
+  return <PublicExperience products={products} />;
 }

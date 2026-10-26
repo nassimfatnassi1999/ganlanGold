@@ -1,0 +1,10 @@
+# Optional Apache headers for static hosting (e.g. Gandi Simple Hosting).
+<IfModule mod_headers.c>
+ Header always set X-Content-Type-Options "nosniff"
+ Header always set Referrer-Policy "strict-origin-when-cross-origin"
+ Header always set X-Frame-Options "DENY"
+ Header always set Permissions-Policy "camera=(), geolocation=(), microphone=()"
+ <Files "prices.json">
+  Header always set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+ </Files>
+</IfModule>
