@@ -1,4 +1,4 @@
-# GANLAN GOLD — Site vitrine B2B (édition statique Gandi)
+# GANLAN GOLD — Site vitrine B2B statique — Netlify / Alibaba Cloud OSS / Gandi
 
 **Projet mis à jour le 27 octobre 2026**, à partir du projet livré et du cahier des charges `GANLAN_GOLD_Website_Developer_Specification_EN_V7.pdf`.
 
@@ -8,7 +8,7 @@ Site premium destiné aux importateurs professionnels d'huile d'olive marocaine,
 
 Deux versions se trouvent dans cette archive :
 
-- **`dist/`** — export statique pour Gandi ou Netlify, sans processus Node.js sur le serveur. La livraison EmailJS actuelle est une **prévisualisation avec envoi désactivé**, marquée `EMAILJS_PREVIEW_ONLY.txt`, car les identifiants du compte ne sont pas fournis. Renseigner `.env.local`, puis exécuter `npm run build` avant une mise en production avec envoi actif.
+- **`dist/`** — export statique de production pour Netlify, Alibaba Cloud OSS Hong Kong ou Gandi, sans processus Node.js sur le serveur. **EmailJS est facultatif et désactivé par défaut** ; la vitrine et les formulaires avec contact manuel fonctionnent sans identifiants. L’envoi automatique peut être activé ensuite en remplaçant `config/emailjs.json`, sans reconstruire le JavaScript.
 - **`src/`, `public/`, `package.json`, `next.config.ts`** — code source Next.js/React/TypeScript permettant de modifier les contenus et de reconstruire la version statique.
 
 Le panorama d'accueil utilise **la dernière image GANLAN GOLD sans titre à gauche**, avec quatre conditionnements, montagnes et oliveraies ; les titres chinois/anglais et boutons sont de vrais éléments HTML, non intégrés dans l'image.
@@ -46,17 +46,17 @@ Lors d’une future reconstruction complète du code, `public/config/prices.json
 
 ## 3. Développement et reconstruction (sur Mac)
 
-Prérequis : Node.js moderne (20.9+ recommandé), npm et une connexion Internet **pour la première installation des dépendances**.
+Prérequis : Node.js 22, npm et une connexion Internet **pour la première installation des dépendances**.
 
 ```bash
 cd GANLAN_GOLD
-npm install
+npm ci
 npm run dev
 ```
 
 Ouvrir `http://localhost:3000`.
 
-Configurer d’abord les quatre identifiants publics EmailJS dans `.env.local` ([guide](docs/EMAILJS_SETUP.md)). Compilation pour Gandi après une modification du code, du design ou des textes :
+**Aucune configuration EmailJS n’est nécessaire.** Compilation après une modification du code, du design ou des textes :
 
 ```bash
 npm run build
@@ -72,7 +72,9 @@ NEXT_PUBLIC_SITE_URL=https://votre-domaine.tld npm run build
 
 Ce domaine est un exemple : **n'utilisez pas une fausse URL en production**.
 
-## 4. Déploiement Gandi
+## 4. Déploiement Netlify, Alibaba Cloud OSS et Gandi
+
+**Netlify** : le fichier `netlify.toml` définit `npm run build` et le dossier publié `dist`. Aucune variable EmailJS n'est requise. **Alibaba Cloud OSS Hong Kong** : téléverser le contenu de `dist/`, activer les index de sous-dossiers et configurer le cache des JSON. Les étapes complètes figurent dans [docs/STATIC_DEPLOYMENT.md](docs/STATIC_DEPLOYMENT.md).
 
 1. Dans Gandi, associer le domaine à un hébergement web prenant en charge les **fichiers HTML/CSS/JS statiques**, et activer **HTTPS**.
 2. Envoyer **le contenu de `dist/`** (et non le dossier lui-même) dans le répertoire racine web du domaine — souvent `htdocs/`, `www/` ou un répertoire défini par l'offre Gandi.
@@ -86,8 +88,11 @@ Ce domaine est un exemple : **n'utilisez pas une fausse URL en production**.
 
 Les deux formulaires transmettent les demandes via le SDK navigateur officiel **EmailJS**, avec un service et deux modèles indépendants. Le site reste entièrement statique. Les destinataires autorisés sont définis dans EmailJS ; aucune adresse destinataire ne vient du formulaire.
 
-Configurer les quatre identifiants publics dans `.env.local` en suivant [docs/EMAILJS_SETUP.md](docs/EMAILJS_SETUP.md). Les hooks `predev` et `prebuild` génèrent uniquement ces identifiants dans `public/config/emailjs.json`, copié automatiquement dans `dist/config/emailjs.json`. Le fichier `.env.local` lui-même n'est jamais publié. **Un build de production refuse les valeurs absentes ou les placeholders.** Sans compte configuré, `npm run build:preview` génère un export de prévisualisation avec envoi désactivé et un marqueur explicite ; il ne constitue pas une livraison de production configurée.
+La configuration unique du navigateur est `/config/emailjs.json`. Le fichier source `public/config/emailjs.json` est copié dans `dist/config/emailjs.json`. Par défaut, il contient `enabled: false` et quatre identifiants vides : **`npm run build` réussit sans aucune variable EmailJS**. Un JSON absent, invalide ou inaccessible désactive seulement l'envoi automatique. Les deux formulaires conservent les champs, la validation et le consentement ; ils expliquent en chinois/anglais que l'envoi automatique est indisponible et proposent WhatsApp ou la copie pour WeChat, sans annoncer de faux succès.
 
+Pour activer EmailJS après déploiement, mettre `enabled: true` et les quatre identifiants publics réels dans `dist/config/emailjs.json`, puis republier ce fichier sur OSS (ou l'instantané statique complet sur Netlify). **Aucun rebuild requis** : la prochaine soumission relit le JSON sans cache. Les variables `.env.local` sont une aide d'initialisation facultative ; un JSON valide délibérément renseigné est prioritaire et n'est pas écrasé par des valeurs vides. Voir les règles exactes dans [EMAILJS_OPTIONAL_CONFIGURATION.md](docs/EMAILJS_OPTIONAL_CONFIGURATION.md).
+
+Guide de déploiement et de cache : [STATIC_DEPLOYMENT.md](docs/STATIC_DEPLOYMENT.md). Réglages du compte et des modèles : [EMAILJS_SETUP.md](docs/EMAILJS_SETUP.md).
 Le succès apparaît après acceptation par EmailJS ; une erreur conserve les champs et propose WhatsApp ou la copie du message pour WeChat. Le bouton de préparation manuelle reste disponible séparément. Les dates de visite ne sont jamais confirmées automatiquement. La notice de confidentialité explique désormais ce traitement externe.
 
 Les deux modèles HTML complets, réglages et aperçus sont dans [emailjs-templates/](emailjs-templates/README.md). Tests : [docs/EMAILJS_TESTING.md](docs/EMAILJS_TESTING.md). Aucun envoi réel n'est effectué par les tests automatisés. La réception réelle et l'accessibilité depuis la Chine continentale doivent être vérifiées avec le compte et les réseaux concernés.
@@ -143,28 +148,21 @@ Les photos produits extraites du PDF restent limitées par la résolution d'orig
 - Configuration domaine, certificat HTTPS, sitemap et performances constatées sur réseau chinois testés.
 - Test réel des deux parcours de contact sur desktop et mobile.
 
-## 9. Vérifications historiques et nouvelle intégration EmailJS
-
-Les résultats actuels de l’intégration sont dans [docs/EMAILJS_TESTING.md](docs/EMAILJS_TESTING.md). Les paragraphes suivants décrivent une livraison antérieure et ne constituent pas les résultats de cette intégration. Rapport historique : `docs/V7_COMPLIANCE_AUDIT.md`.
-
-**Vérifications effectuées sur cette révision :** `npm run verify:static` (réussi), `node --check public/interactive/olive-journey.js` (réussi), comparaison de la structure statique (quatre produits, une section MOQ, liens internes, contacts, prix et fichiers d'images), empreintes SHA-256 des deux QR codes officiels, inspection des images dérivées et prévisualisation du SVG.
-
-**Limitation vérifiable :** l'environnement de reconstruction n'avait pas accès aux dépendances complètes nécessaires au nouveau build Next.js ; une tentative `npm ci` a échoué à cause d'un paquet non présent dans le cache puis d'un accès réseau expiré. La sortie `dist/` est donc celle **déjà compilée et fournie par le client**, mise à jour directement avec les nouvelles images optimisées, feuilles CSS, scripts et liens. Le nouveau code source est inclus pour les prochaines reconstructions sur ton Mac, mais **je ne prétends pas avoir effectué un nouveau `npm run build` ou des tests Playwright complets** sur cette révision. L'accès Chromium aux pages locales a également été bloqué par l'environnement d'exécution.
-
-Avant la mise en production, sur ton Mac, exécute :
+## 9. Vérifier le projet
 
 ```bash
 npm ci
+npm test
 npm run typecheck
 npm run lint
 npm run test:e2e
-NEXT_PUBLIC_SITE_URL=https://ton-vrai-domaine.tld npm run build
+NEXT_PUBLIC_SITE_URL=https://ganlan.netlify.app npm run build
 npm run verify:static
 ```
 
-Attention : **`npm run build` régénère `dist/`**. Le fichier `src/app/layout.tsx` inclut désormais automatiquement les deux ressources d'animation, et `public/images/` contient les quatre nouveaux fichiers produits : ces améliorations seront conservées au prochain build.
+Les réponses EmailJS sont simulées dans les tests, sans envoi réel. Pour vérifier les fichiers exportés eux-mêmes, servir `dist/` avec un serveur statique et définir `PLAYWRIGHT_BASE_URL` : [instructions](docs/STATIC_DEPLOYMENT.md). Le build remplace `dist/` : synchroniser d'abord les JSON de configuration déployés vers `public/config/`.
 
-Le déploiement des fichiers `dist/` fonctionne sur Gandi ou Netlify statique. EmailJS transmet les formulaires après configuration du compte ; les alternatives WhatsApp/WeChat sont conservées.
+Les anciens rapports datés dans `docs/` décrivent leurs propres révisions et ne constituent pas une preuve du statut actuel du déploiement Netlify ou de réception des emails.
 
 ## 10. Licence et ressources
 

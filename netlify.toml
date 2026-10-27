@@ -1,0 +1,10 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
+
+[context.production.environment]
+  NEXT_PUBLIC_SITE_URL = "https://ganlan.netlify.app"

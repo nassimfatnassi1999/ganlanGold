@@ -5,7 +5,17 @@ export const EMAILJS_ENV_KEYS = {
   visitTemplateId: "NEXT_PUBLIC_EMAILJS_VISIT_TEMPLATE_ID",
 } as const;
 
-export type EmailJSConfig = Record<keyof typeof EMAILJS_ENV_KEYS, string>;
+export type EmailJSConfig = Record<keyof typeof EMAILJS_ENV_KEYS, string> & {
+  enabled: boolean;
+};
+
+export const DISABLED_EMAILJS_CONFIG: Readonly<EmailJSConfig> = Object.freeze({
+  enabled: false,
+  publicKey: "",
+  serviceId: "",
+  quoteTemplateId: "",
+  visitTemplateId: "",
+});
 
 export function validIdentifier(value: unknown): value is string {
   return (
@@ -23,19 +33,23 @@ export function validateEmailJSConfig(value: unknown): value is EmailJSConfig {
   const config = value as Record<string, unknown>;
   const keys = Object.keys(EMAILJS_ENV_KEYS);
   return (
-    Object.keys(config).length === keys.length &&
-    keys.every((key) => validIdentifier(config[key])) &&
-    config.quoteTemplateId !== config.visitTemplateId
+    Object.keys(config).length === keys.length + 1 &&
+    typeof config.enabled === "boolean" &&
+    keys.every((key) => config[key] === "" || validIdentifier(config[key])) &&
+    (!config.enabled ||
+      (keys.every((key) => validIdentifier(config[key])) &&
+        config.quoteTemplateId !== config.visitTemplateId))
   );
 }
 
 export function publicConfigFromEnv(
   env: Record<string, string | undefined>,
 ): EmailJSConfig {
-  return Object.fromEntries(
+  const config = { enabled: true, ...Object.fromEntries(
     Object.entries(EMAILJS_ENV_KEYS).map(([key, name]) => [
       key,
       env[name]?.trim() ?? "",
     ]),
-  ) as EmailJSConfig;
+  ) } as EmailJSConfig;
+  return validateEmailJSConfig(config) ? config : { ...DISABLED_EMAILJS_CONFIG };
 }

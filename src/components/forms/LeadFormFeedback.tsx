@@ -25,9 +25,11 @@ export function LeadFormFeedback({
           </ul>
         </div>
       ) : null}
-      {["failure", "cooldown", "busy", "unconfirmed"].includes(lead.status) ? (
+      {["failure", "cooldown", "busy", "unconfirmed", "disabled"].includes(lead.status) ? (
         <div className="form-summary" role="alert">
-          {lead.status === "cooldown"
+          {lead.status === "disabled"
+            ? t.forms.emailUnavailable
+            : lead.status === "cooldown"
             ? t.forms.cooldown
             : lead.status === "busy"
               ? t.forms.busy

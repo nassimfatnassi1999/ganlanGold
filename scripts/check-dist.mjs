@@ -1,7 +1,4 @@
-import {
-  validateEmailJSConfig,
-  EMAILJS_ENV_KEYS,
-} from "../src/config/emailjs-schema.ts";
+import { validateEmailJSConfig } from "../src/config/emailjs-schema.ts";
 /** Static export verification; shares the runtime EmailJS contract via tsx. */
 import { readFile, access, readdir } from "node:fs/promises";
 const dir = new URL("../dist/", import.meta.url);
@@ -15,6 +12,10 @@ function check(condition, message) {
   console.log(`✓ ${message}`);
 }
 for (const url of [
+  "404.html",
+  "_next/static",
+  "robots.txt",
+  "sitemap.xml",
   "privacy/index.html",
   "legal/index.html",
   "terms/index.html",
@@ -72,15 +73,9 @@ check(
 const emailjs = JSON.parse(
   await readFile(new URL("config/emailjs.json", dir), "utf8"),
 );
-const preview = process.argv.includes("--preview");
 check(
-  validateEmailJSConfig(emailjs) ||
-    (preview &&
-      Object.keys(emailjs).length === 4 &&
-      Object.keys(EMAILJS_ENV_KEYS).every((key) => emailjs[key] === "")),
-  preview
-    ? "Preview EmailJS configuration is valid or safely disabled"
-    : "Production EmailJS configuration has four valid public identifiers",
+  validateEmailJSConfig(emailjs),
+  "Runtime EmailJS configuration is valid (enabled or safely disabled)",
 );
 const files = await readdir(dir, { recursive: true });
 check(
@@ -90,10 +85,8 @@ check(
   "No environment files in static export",
 );
 check(
-  preview || !files.includes("EMAILJS_PREVIEW_ONLY.txt"),
-  preview
-    ? "Explicit preview artifact accepted"
-    : "Production output is not marked as a preview",
+  !files.includes("EMAILJS_PREVIEW_ONLY.txt"),
+  "Production showcase has no obsolete preview-only marker",
 );
 
 console.log("Static verification succeeded.");

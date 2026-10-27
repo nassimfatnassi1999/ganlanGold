@@ -15,7 +15,7 @@
     "prebuild": "tsx scripts/generate-emailjs-config.mjs production",
     "test": "tsx --test tests/unit/*.test.ts && npm run verify:emailjs",
     "verify:emailjs": "tsx scripts/validate-emailjs-templates.ts",
-    "build:preview": "tsx scripts/generate-emailjs-config.mjs development && next build && node scripts/copy-out-to-dist.mjs --preview && tsx scripts/check-dist.mjs --preview",
+    "build:preview": "npm run build",
     "preview:emailjs": "tsx scripts/validate-emailjs-templates.ts --previews"
   },
   "dependencies": {

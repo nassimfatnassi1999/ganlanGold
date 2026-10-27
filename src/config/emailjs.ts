@@ -1,8 +1,12 @@
-import { validateEmailJSConfig, type EmailJSConfig } from "./emailjs-schema";
+import {
+  DISABLED_EMAILJS_CONFIG,
+  validateEmailJSConfig,
+  type EmailJSConfig,
+} from "./emailjs-schema";
 
 let pending: Promise<EmailJSConfig> | undefined;
 
-/** One runtime source of truth; successful loads are reused until the page reloads. */
+/** Fetch again on each submission so JSON-only deployments take effect in open pages. */
 export function loadEmailJSConfig(): Promise<EmailJSConfig> {
   if (!pending) {
     pending = (async () => {
@@ -15,10 +19,9 @@ export function loadEmailJSConfig(): Promise<EmailJSConfig> {
       if (!validateEmailJSConfig(value))
         throw new Error("Email configuration invalid");
       return value;
-    })().catch((error: unknown) => {
-      pending = undefined; // Retry a transient failure on the next explicit submission.
-      throw error;
-    });
+    })()
+      .catch(() => ({ ...DISABLED_EMAILJS_CONFIG }))
+      .finally(() => { pending = undefined; });
   }
   return pending;
 }

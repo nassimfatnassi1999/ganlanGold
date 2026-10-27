@@ -12,7 +12,7 @@ export const SEND_WAIT_MS = 20_000;
 let inFlight = false;
 let nextAllowed = 0;
 export class LeadSendError extends Error {
-  constructor(public readonly reason: "busy" | "cooldown") {
+  constructor(public readonly reason: "busy" | "cooldown" | "disabled") {
     super("Submission unavailable");
   }
 }
@@ -38,6 +38,7 @@ export async function sendLead(
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     const config = await loadEmailJSConfig();
+    if (!config.enabled) throw new LeadSendError("disabled");
     nextAllowed = Date.now() + SUBMISSION_COOLDOWN_MS;
     const request = emailjs.send(
       config.serviceId,

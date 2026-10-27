@@ -16,37 +16,18 @@ The two existing forms send through `@emailjs/browser` using `emailjs.send()`, o
 10. Paste all of `emailjs-templates/grove-visit-request.html` into its HTML editor.
 11. Set its subject to `GANLAN GOLD | 橄榄园参观申请 / Grove Visit Request — {{company}}`. Configure its authorized recipient and sender directly in the dashboard, following `emailjs-templates/grove-visit-request-settings.md`. Leave Reply-To blank for the mixed contact workflow. Disable auto-replies/linked confirmation templates: no visitor is promised a scheduled date.
 12. Save and copy the distinct visit **Template ID**.
-13. Set these four actual values in the project-root `.env.local` (created with placeholders if it was absent):
+13. Enable sending using the five-field runtime JSON described in [EMAILJS_OPTIONAL_CONFIGURATION.md](EMAILJS_OPTIONAL_CONFIGURATION.md). `enabled` must be `true`; both template IDs must be distinct. Use only the public browser key and IDs. The website builds and runs without them.
+14. Configure the EmailJS domain allowlist for the exact authorized origins, including `http://localhost:3000` for local testing and `https://ganlan.netlify.app` for the existing production site. Add the actual OSS custom domain when used. Avoid `*` or invented domains.
+15. Run `npm ci` and `npm run dev`. Missing configuration disables automatic submission while keeping manual contacts and validated prepared messages available.
+16. Run `npm test`, `npm run typecheck`, `npm run lint`, `npm run test:e2e` and `npm run build`. Automated tests mock provider responses and never send real emails. `npm run build` accepts disabled EmailJS in production.
+17. Deploy the contents of `dist/` using [STATIC_DEPLOYMENT.md](STATIC_DEPLOYMENT.md). To enable later, replace `config/emailjs.json` without rebuilding; Netlify requires a complete static deployment snapshot, while OSS allows replacing just that object.
+18. With the recipient's permission, send one real quotation and one visit inquiry on the authorized production origin. Verify the intended inbox, all fields and Chinese text, provider history and spam folders. UI acceptance is not proof of inbox delivery. Automated tests do not establish real delivery or access from mainland China.
 
-    ```dotenv
-    NEXT_PUBLIC_EMAILJS_PUBLIC_KEY=YOUR_PUBLIC_KEY
-    NEXT_PUBLIC_EMAILJS_SERVICE_ID=YOUR_SERVICE_ID
-    NEXT_PUBLIC_EMAILJS_QUOTE_TEMPLATE_ID=YOUR_QUOTE_TEMPLATE_ID
-    NEXT_PUBLIC_EMAILJS_VISIT_TEMPLATE_ID=YOUR_VISIT_TEMPLATE_ID
-    ```
+## Runtime contract and optional environment support
 
-    Replace all placeholders; do not invent IDs. Existing values are never overwritten by the generator. `.env.local` is gitignored. For CI, set the four public values in the hosting build environment instead. No private EmailJS key is used.
-14. Configure the EmailJS **Domains** allowlist with exact authorized origins. Development: `http://localhost:3000` (add an explicit alternative origin/port only if used). Production: the actual HTTPS origin of the deployed GANLAN GOLD domain, plus its `www` origin if served and the actual Netlify origin if used. **No verified production domain is supplied in this repository, so the owner must supply it.** Copy the origin from the browser address bar, excluding paths and fragments; do not whitelist a made-up domain or `*`. See the [official origin format](https://www.emailjs.com/docs/faq/can-i-add-my-domain-to-allowlist/).
-15. Run `npm install`, then `npm run dev`, and open the URL reported by Next. `predev` generates `public/config/emailjs.json`. Missing settings produce a disabled config and friendly submission errors, while manual contact options continue working. After changing environment values, stop/restart the development server so the hook runs again.
-16. Test the quotation and visit forms independently, in Chinese and English, using the matrix in `EMAILJS_TESTING.md`. Automated tests mock EmailJS; real account tests are a separate manual step.
-17. Run `npm test`, `npm run typecheck`, `npm run lint`, `npm run test:e2e`, and `npm run build`. `prebuild` uses production environment precedence and fails before export if any identifier is missing, malformed, a placeholder, or if template IDs are identical. It cannot verify account ownership/existence or inbox delivery. Set the real `NEXT_PUBLIC_SITE_URL` before the build as usual for SEO.
-18. Check `dist/config/emailjs.json`. It must contain exactly `publicKey`, `serviceId`, `quoteTemplateId`, `visitTemplateId`, all nonempty strings. Run `npm run verify:static`. `.env.local` must never appear in `dist/`. The build allowlists only those four identifiers even if unrelated secrets exist in local environment files.
-19. Deploy **only the contents of `dist/`** to the Netlify publish directory or the Gandi web root. Netlify build command: `npm run build`; publish directory: `dist`. Set its build environment variables before building. Gandi can serve the files directly over HTTPS. Do not upload the source tree, `.env*`, `node_modules` or `.next`. A folder produced by `npm run build:preview` is marked `EMAILJS_PREVIEW_ONLY.txt` and must not be used as the production release.
-20. On the actual authorized production origin, send one real quotation and one visit inquiry with permission, confirm the intended team inbox receives each, and check all fields, subjects and Chinese text. Check EmailJS history/provider delivery status and spam folders. EmailJS acceptance in the UI is not proof of inbox delivery. This implementation session does not claim real delivery without that confirmation.
+See [EMAILJS_OPTIONAL_CONFIGURATION.md](EMAILJS_OPTIONAL_CONFIGURATION.md) for the exact five-field JSON shape, precedence, disabled fallback, cache rules and edit-without-build workflow. This guide's account/template instructions remain applicable; older dated reports refer to earlier implementations.
 
-## One runtime configuration contract
-
-`scripts/generate-emailjs-config.mjs` runs through `tsx` and uses Next's official `@next/env` loader from the project root. Precedence is: shell environment, `.env.production.local` / `.env.development.local`, `.env.local`, `.env.production` / `.env.development`, `.env`. In test mode `.env.local` is skipped, matching Next.js. Values are trimmed, validated and allowlisted into `public/config/emailjs.json`; static export copies it into `dist/config/emailjs.json`. No raw environment file is published. Invalid production settings remove any stale generated public JSON and exit with the missing variable **names**, never values.
-
-The browser fetches `/config/emailjs.json` on the first valid submission with `cache: no-store`, validates the complete shape, and shares the successful promise between forms until reload. Failed loads are retried on a later explicit submission. There are no compiled EmailJS environment-value fallbacks or second configuration source. A 10-second fetch timeout prevents configuration loading from hanging indefinitely. A send that has not settled after 20 seconds reports delivery as unconfirmed, preserves the input and exposes manual alternatives. Because the SDK cannot abort a send, the shared service lock stays held until the original request settles. A late result does not clear fields or claim success after the timeout. Check with the team before resending an unconfirmed request.
-
-Changing `.env.local` and running `npm run build` regenerates the deployed configuration. To change Template IDs, update the existing dashboard template or create a new template, set the corresponding local/build variable and rebuild. Both IDs must remain distinct.
-
-Because config is fetched at runtime, you may also replace just the deployed `config/emailjs.json` with the exact validated four-key shape. It contains public browser IDs only. Purge any hosting/CDN cache for that path and reload open pages because a successful config is cached in memory. Synchronize `.env.local` or the build environment afterward: a later build regenerates the file and otherwise reverts the manual deployment change. Never upload `.env.local`. Hosting changes to prices still follow the existing independent `config/prices.json` workflow.
-
-## Preview without an EmailJS account
-
-`npm run build` intentionally fails with placeholders. To review a static export before account setup, run `npm run build:preview`. It generates development-mode config, exports the same frontend, and verifies either a valid contract or the safely disabled four-empty-string contract. `dist/EMAILJS_PREVIEW_ONLY.txt` marks this artifact; `npm run verify:static` rejects disabled configuration/preview markers for production. This is a visual/testing preview, not a configured email deployment. No fabricated account IDs are needed.
+The browser fetches JSON on every valid submission, sharing only concurrent loads. HTTP, JSON, schema or network errors safely disable sending. A configuration failure does not consume the 30-second provider cooldown. No environment file is ever uploaded. Do not store private keys or SMTP passwords in public JSON.
 
 ## Validation, commercial rules and abuse controls
 

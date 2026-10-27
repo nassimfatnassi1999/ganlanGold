@@ -1,3 +1,5 @@
+> Historical report for the original EmailJS integration. Its mandatory-credentials/preview-only build policy has been replaced. For the current optional production configuration and commands, see [EMAILJS_OPTIONAL_CONFIGURATION.md](EMAILJS_OPTIONAL_CONFIGURATION.md) and [STATIC_DEPLOYMENT.md](STATIC_DEPLOYMENT.md). Results below belong to the earlier revision.
+
 # EmailJS verification and delivery tests
 
 Date: 27 October 2026. Automated checks use synthetic data and mocks; they never send real email.

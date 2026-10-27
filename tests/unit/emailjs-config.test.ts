@@ -34,7 +34,7 @@ function generate(root: string, mode = "production", overrides = {}) {
 const values = (prefix: string) =>
   names.map((name) => `${envKey(name)}=${prefix}_${name}`).join("\n");
 
-test("generator respects Next precedence and exposes exactly four identifiers", async () => {
+test("generator respects Next precedence and exposes only enabled and four public identifiers", async () => {
   const root = await fixture();
   try {
     await writeFile(
@@ -53,6 +53,7 @@ test("generator respects Next precedence and exposes exactly four identifiers", 
       "utf8",
     );
     assert.deepEqual(JSON.parse(raw), {
+      enabled: true,
       publicKey: "shell-key",
       serviceId: "priority_SERVICE_ID",
       quoteTemplateId: "priority_QUOTE_TEMPLATE_ID",
@@ -65,65 +66,84 @@ test("generator respects Next precedence and exposes exactly four identifiers", 
   }
 });
 
-test("production rejects missing, placeholder and identical template configuration and removes stale JSON", async () => {
-  for (const value of [
-    "",
-    "YOUR_PUBLIC_KEY",
-    "REPLACE_ME",
-    "placeholder",
-    "changeme",
-    "   ",
+const disabled = {
+  enabled: false,
+  publicKey: "",
+  serviceId: "",
+  quoteTemplateId: "",
+  visitTemplateId: "",
+};
+
+test("production succeeds disabled for missing, incomplete, placeholder and identical credentials", async () => {
+  for (const overrides of [
+    {},
+    { NEXT_PUBLIC_EMAILJS_PUBLIC_KEY: "only-key" },
+    ...["", "YOUR_PUBLIC_KEY", "REPLACE_ME", "placeholder", "changeme", "   "].map(
+      (value) => Object.fromEntries(names.map((name) => [envKey(name), value])),
+    ),
+    Object.fromEntries(names.map((name) => [envKey(name), "same"])),
   ]) {
     const root = await fixture();
     try {
-      await mkdir(join(root, "public/config"));
-      await writeFile(
-        join(root, "public/config/emailjs.json"),
-        '{"stale":true}',
-      );
-      await writeFile(join(root, ".env.local"), values("configured"));
-      const result = generate(root, "production", {
-        NEXT_PUBLIC_EMAILJS_PUBLIC_KEY: value,
-      });
-      assert.notEqual(result.status, 0, value);
-      assert.match(result.stderr, /NEXT_PUBLIC_EMAILJS_PUBLIC_KEY/);
-      await assert.rejects(readFile(join(root, "public/config/emailjs.json")));
+      const result = generate(root, "production", overrides);
+      assert.equal(result.status, 0, result.stderr);
+      assert.deepEqual(JSON.parse(await readFile(join(root, "public/config/emailjs.json"), "utf8")), disabled);
     } finally {
       await rm(root, { recursive: true });
     }
   }
-  const root = await fixture();
-  try {
-    await writeFile(join(root, ".env.local"), values("configured"));
-    assert.notEqual(
-      generate(root, "production", {
-        NEXT_PUBLIC_EMAILJS_QUOTE_TEMPLATE_ID: "same",
-        NEXT_PUBLIC_EMAILJS_VISIT_TEMPLATE_ID: "same",
-      }).status,
-      0,
-    );
-  } finally {
-    await rm(root, { recursive: true });
+});
+
+test("deliberately supplied enabled or disabled runtime JSON takes priority over environment", async () => {
+  for (const enabled of [true, false]) {
+    const root = await fixture();
+    const manual = { enabled, publicKey: "manual-key", serviceId: "manual-service", quoteTemplateId: "manual-quote", visitTemplateId: "manual-visit" };
+    try {
+      await mkdir(join(root, "public/config"));
+      const raw = JSON.stringify(manual, null, 2) + "\n";
+      await writeFile(join(root, "public/config/emailjs.json"), raw);
+      for (const configured of [false, true]) {
+        if (configured) await writeFile(join(root, ".env.local"), values("env"));
+        const result = generate(root);
+        assert.equal(result.status, 0, result.stderr);
+        assert.equal(await readFile(join(root, "public/config/emailjs.json"), "utf8"), raw);
+      }
+    } finally {
+      await rm(root, { recursive: true });
+    }
   }
 });
 
-test("development writes a disabled contract for missing settings", async () => {
+test("default JSON can be seeded from complete optional env values", async () => {
   const root = await fixture();
   try {
-    const result = generate(root, "development");
-    assert.equal(result.status, 0, result.stderr);
-    assert.deepEqual(
-      JSON.parse(
-        await readFile(join(root, "public/config/emailjs.json"), "utf8"),
-      ),
-      {
-        publicKey: "",
-        serviceId: "",
-        quoteTemplateId: "",
-        visitTemplateId: "",
-      },
-    );
-  } finally {
-    await rm(root, { recursive: true });
+    await mkdir(join(root, "public/config"));
+    await writeFile(join(root, "public/config/emailjs.json"), JSON.stringify(disabled));
+    await writeFile(join(root, ".env.local"), values("local"));
+    assert.equal(generate(root).status, 0);
+    const config = JSON.parse(await readFile(join(root, "public/config/emailjs.json"), "utf8"));
+    assert.equal(config.enabled, true);
+    assert.equal(config.serviceId, "local_SERVICE_ID");
+  } finally { await rm(root, { recursive: true }); }
+});
+
+test("malformed and unsafe public configs are repaired to disabled without credentials", async () => {
+  for (const raw of ["{", '{"enabled":"true"}', JSON.stringify({ ...disabled, privateKey: "never-publish" })]) {
+    const root = await fixture();
+    try {
+      await mkdir(join(root, "public/config"));
+      await writeFile(join(root, "public/config/emailjs.json"), raw);
+      const result = generate(root);
+      assert.equal(result.status, 0, result.stderr);
+      assert.deepEqual(JSON.parse(await readFile(join(root, "public/config/emailjs.json"), "utf8")), disabled);
+    } finally { await rm(root, { recursive: true }); }
   }
+});
+
+test("development succeeds disabled without settings", async () => {
+  const root = await fixture();
+  try {
+    assert.equal(generate(root, "development").status, 0);
+    assert.deepEqual(JSON.parse(await readFile(join(root, "public/config/emailjs.json"), "utf8")), disabled);
+  } finally { await rm(root, { recursive: true }); }
 });

@@ -1,12 +1,11 @@
 import nextEnv from "@next/env";
-import { mkdir, writeFile, rm } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { resolve, join } from "node:path";
 import {
   EMAILJS_ENV_KEYS,
   publicConfigFromEnv,
   validateEmailJSConfig,
-  validIdentifier,
 } from "../src/config/emailjs-schema.ts";
 
 const mode = process.argv[2] ?? "production";
@@ -15,33 +14,27 @@ if (!["development", "production", "test"].includes(mode))
 const root = resolve(
   process.argv[3] ?? fileURLToPath(new URL("../", import.meta.url)),
 );
-process.env.NODE_ENV = mode;
-nextEnv.loadEnvConfig(root, mode === "development");
-const config = publicConfigFromEnv(process.env);
 const target = join(root, "public/config/emailjs.json");
-if (!validateEmailJSConfig(config)) {
-  if (mode === "production") {
-    await rm(target, { force: true });
-    const missing = Object.entries(EMAILJS_ENV_KEYS)
-      .filter(([key]) => !validIdentifier(config[key]))
-      .map(([, name]) => name);
-    console.error(
-      `EmailJS production configuration incomplete: ${missing.join(", ") || "quote and visit Template IDs must differ"}. Set actual public identifiers in .env.local or the build environment. No values were printed.`,
-    );
-    process.exitCode = 1;
-  } else {
-    for (const key of Object.keys(config)) config[key] = "";
-    console.warn(
-      "EmailJS is disabled: configure the four public identifiers in .env.local, then restart/rebuild.",
-    );
-  }
+let supplied;
+try {
+  supplied = JSON.parse(await readFile(target, "utf8"));
+} catch (error) {
+  if (error.code !== "ENOENT")
+    console.warn("Invalid EmailJS runtime JSON; using optional environment settings or disabled defaults.");
 }
-if (!process.exitCode) {
+
+// Preserve deliberate enabled/disabled JSON; only the empty shipped scaffold can be seeded.
+const deliberate = validateEmailJSConfig(supplied) &&
+  (supplied.enabled || Object.keys(EMAILJS_ENV_KEYS).some((key) => supplied[key] !== ""));
+if (deliberate) {
+  console.log("Preserved public/config/emailjs.json; runtime JSON takes precedence.");
+} else {
+  process.env.NODE_ENV = mode;
+  nextEnv.loadEnvConfig(root, mode === "development");
+  const config = publicConfigFromEnv(process.env);
   await mkdir(join(root, "public/config"), { recursive: true });
-  await writeFile(target, `${JSON.stringify(config, null, 2)}\n`, {
-    mode: 0o644,
-  });
-  console.log(
-    "Generated public/config/emailjs.json (only four public browser identifiers).",
-  );
+  await writeFile(target, `${JSON.stringify(config, null, 2)}\n`, { mode: 0o644 });
+  console.log(config.enabled
+    ? "Generated EmailJS runtime JSON from four optional public identifiers."
+    : "EmailJS disabled; the production showcase and manual contact forms remain available.");
 }

@@ -14,6 +14,7 @@ import {
   buildVisitParams,
 } from "../../src/lib/forms/lead.ts";
 const config = {
+  enabled: true,
   publicKey: "unit-public",
   serviceId: "unit-service",
   quoteTemplateId: "unit-quote",
@@ -35,27 +36,60 @@ Object.entries({
 const quote = buildQuoteParams(validateQuote(f).data!, "en");
 const visit = buildVisitParams(validateVisit(f).data!, "en");
 
-test("loader rejects errors, malformed contracts, placeholders, extra keys; caches only successful loads", async () => {
+const disabled = { enabled: false, publicKey: "", serviceId: "", quoteTemplateId: "", visitTemplateId: "" };
+
+test("loader falls back disabled for HTTP, JSON, schema and network failures", async () => {
   for (const response of [
     new Response("no", { status: 404 }),
     new Response("{"),
     Response.json({}),
+    Response.json({ ...config, enabled: "true" }),
+    Response.json({ ...config, publicKey: "" }),
     Response.json({ ...config, publicKey: "YOUR_PUBLIC_KEY" }),
+    Response.json({ ...config, quoteTemplateId: config.visitTemplateId }),
     Response.json({ ...config, privateKey: "should-not-be-here" }),
   ]) {
     const fetch = mock.method(globalThis, "fetch", async () => response);
-    await assert.rejects(loadEmailJSConfig());
-    fetch.mock.restore();
+    try { assert.deepEqual(await loadEmailJSConfig(), disabled); }
+    finally { fetch.mock.restore(); }
   }
-  const fetch = mock.method(globalThis, "fetch", async () =>
-    Response.json(config),
-  );
-  assert.deepEqual(await loadEmailJSConfig(), config);
-  assert.deepEqual(await loadEmailJSConfig(), config);
-  assert.equal(fetch.mock.callCount(), 1);
-  fetch.mock.restore();
+  const fetch = mock.method(globalThis, "fetch", async () => { throw new Error("offline"); });
+  try { assert.deepEqual(await loadEmailJSConfig(), disabled); }
+  finally { fetch.mock.restore(); }
+});
+
+test("loader rereads runtime edits and shares only concurrent requests", async () => {
+  let current = disabled;
+  const fetch = mock.method(globalThis, "fetch", async (_url, options) => {
+    assert.equal(options?.cache, "no-store");
+    return Response.json(current);
+  });
+  try {
+    assert.deepEqual(await loadEmailJSConfig(), disabled);
+    current = config;
+    assert.deepEqual(await loadEmailJSConfig(), config);
+    current = { ...config, enabled: false };
+    const results = await Promise.all([loadEmailJSConfig(), loadEmailJSConfig()]);
+    assert.deepEqual(results, [current, current]);
+    assert.equal(fetch.mock.callCount(), 3);
+  } finally { fetch.mock.restore(); }
+});
+
+test("disabled config never invokes SDK and does not consume cooldown", async () => {
+  let current = { ...config, enabled: false };
+  const fetch = mock.method(globalThis, "fetch", async () => Response.json(current));
+  const sdk = mock.method(emailjs, "send", async () => ({ status: 200, text: "OK" }));
+  const clock = mock.method(Date, "now", () => 1);
+  try {
+    await assert.rejects(sendLead("quote", quote), (error: unknown) => error instanceof LeadSendError && error.reason === "disabled");
+    assert.equal(sdk.mock.callCount(), 0);
+    current = config;
+    await sendLead("quote", quote);
+    assert.equal(sdk.mock.callCount(), 1);
+  } finally { fetch.mock.restore(); sdk.mock.restore(); clock.mock.restore(); }
 });
 test("service uses correct templates, prevents concurrent sends and enforces shared cooldown after failure", async () => {
+  const fetch = mock.method(globalThis, "fetch", async () => Response.json(config));
   let now = 100000;
   const clock = mock.method(Date, "now", () => now);
   let finish: (value: { status: number; text: string }) => void = () => {};
@@ -102,5 +136,6 @@ test("service uses correct templates, prevents concurrent sends and enforces sha
   } finally {
     sdk.mock.restore();
     clock.mock.restore();
+    fetch.mock.restore();
   }
 });

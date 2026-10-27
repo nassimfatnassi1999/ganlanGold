@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 const config = {
+  enabled: true,
   publicKey: "browser-fixture-public",
   serviceId: "browser-fixture-service",
   quoteTemplateId: "browser-fixture-quote",
@@ -173,7 +174,7 @@ test("missing configuration never sends and keeps entered values; manual handoff
   const form = await fill(page, "visit", false);
   await form.locator("button[type=submit]").click();
   await expect(form.getByRole("alert")).toContainText(
-    "Unable to send your request",
+    "Automatic email submission is not currently available",
   );
   await expect(form.locator("[name=wechat]")).toHaveValue("buyer-wechat");
   await form
@@ -263,3 +264,60 @@ test("a stalled provider times out without claiming failure or success and retai
     "Your request has been sent successfully",
   );
 });
+
+for (const language of ["zh-CN", "en"])
+  for (const kind of ["quote", "visit"] as const) {
+    test(`${kind} disabled in ${language} preserves input and provides manual contact without sending`, async ({ page }) => {
+      await page.route("**/config/emailjs.json", (route) => route.fulfill({ json: { ...config, enabled: false } }));
+      let calls = 0;
+      page.on("request", (request) => { if (request.url() === endpoint) calls++; });
+      await page.goto(`/#${kind}`);
+      if (language === "en") await page.getByRole("group", { name: "语言 / Language" }).getByRole("button", { name: "English" }).click();
+      const form = await fill(page, kind);
+      await form.locator("button[type=submit]").click();
+      await expect(form.getByRole("alert")).toContainText(language === "en" ? "Automatic email submission is not currently available" : "自动邮件提交暂不可用");
+      await expect(form.locator("[name=company]")).toHaveValue("中国采购商 Buyer");
+      await expect(form.locator("[name=consent]")).toBeChecked();
+      await expect(form.getByRole("link", { name: /WhatsApp/ })).toHaveAttribute("href", /^https:\/\/wa.me\//);
+      await expect(form.locator(".lead-message-preview")).toContainText("中国采购商 Buyer");
+      await expect(form.getByRole("button", { name: language === "en" ? "Copy for WeChat" : "复制信息供微信发送" })).toBeVisible();
+      expect(calls).toBe(0);
+    });
+  }
+
+test("a runtime JSON edit activates sending on a later submission without reload or rebuild", async ({ page }) => {
+  let enabled = false;
+  await page.route("**/config/emailjs.json", (route) => route.fulfill({ json: { ...config, enabled } }));
+  let calls = 0;
+  await page.route(endpoint, async (route) => { calls++; await route.fulfill({ status: 200, body: "OK" }); });
+  await page.goto("/#quote");
+  const form = await fill(page, "quote");
+  await form.locator("button[type=submit]").click();
+  await expect(form.getByRole("alert")).toContainText("自动邮件提交暂不可用");
+  expect(calls).toBe(0);
+  enabled = true;
+  await form.locator("button[type=submit]").click();
+  await expect(form.getByRole("status").first()).toContainText("您的申请已成功发送");
+  expect(calls).toBe(1);
+});
+
+for (const failure of ["missing", "network", "incomplete", "nonboolean"] as const) {
+  test(`runtime config ${failure} safely disables sending`, async ({ page }) => {
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.route("**/config/emailjs.json", (route) => {
+      if (failure === "missing") return route.fulfill({ status: 404, body: "Not found" });
+      if (failure === "network") return route.abort();
+      return route.fulfill({ json: failure === "incomplete" ? { ...config, serviceId: "" } : { ...config, enabled: "true" } });
+    });
+    let calls = 0;
+    page.on("request", (request) => { if (request.url() === endpoint) calls++; });
+    await page.goto("/#quote");
+    const form = await fill(page, "quote");
+    await form.locator("button[type=submit]").click();
+    await expect(form.getByRole("alert")).toContainText("自动邮件提交暂不可用");
+    await expect(form.locator("[name=company]")).toHaveValue("中国采购商 Buyer");
+    expect(calls).toBe(0);
+    expect(errors).toEqual([]);
+  });
+}

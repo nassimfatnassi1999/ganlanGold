@@ -21,6 +21,7 @@ type Status =
   | "failure"
   | "cooldown"
   | "busy"
+  | "disabled"
   | "unconfirmed";
 type Handoff = { message: string; whatsappUrl: string; copied: boolean };
 export function useLeadForm<T>(options: {
