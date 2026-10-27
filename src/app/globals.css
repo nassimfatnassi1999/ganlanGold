@@ -970,6 +970,7 @@ html[data-language="en"] .language-content--en {
 
 .form-field input,
 .form-field textarea,
+.form-field select,
 .quantity-label input {
   width: 100%;
   min-height: var(--input-height);
@@ -986,6 +987,7 @@ html[data-language="en"] .language-content--en {
 }
 
 .lead-form > .form-field,
+.lead-form-fields > .form-field,
 .product-picker,
 .consent-row {
   margin-top: var(--space-6);
@@ -1686,3 +1688,11 @@ html[data-language="en"] .language-content--en {
  .hero-picture img { object-position: center top; }
  .hero-overlay { background: linear-gradient(0deg, rgb(7 29 19 / .98) 0%, rgb(7 29 19 / .93) 25%, rgb(7 29 19 / .48) 52%, rgb(7 29 19 / .05) 81%); }
 }
+
+/* Preserve the existing form layout while adding accessible mail feedback. */
+.lead-form-fields { border: 0; margin: 0; padding: 0; min-width: 0; }
+.field-error, .form-field .field-error { display: block; color: #8b261c; font-size: .82rem; line-height: 1.5; margin-top: .35rem; }
+.form-field select option { color: #173e2b; background: #faf7ef; }
+.form-field [aria-invalid="true"], .quantity-label [aria-invalid="true"] { border-color: #b54632; }
+.form-alternative { margin: .65rem 0 0 .65rem; }
+@media (max-width: 600px) { .form-alternative { margin-left: 0; width: 100%; white-space: normal; } }

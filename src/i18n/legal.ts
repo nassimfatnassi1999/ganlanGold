@@ -9,26 +9,26 @@ export const privacySections: readonly LegalSection[] = [
   {
     zhTitle: "我们收集的信息",
     enTitle: "Information we collect",
-    zhBody: "当您填写商业询价或考察申请时，您输入的信息只在当前浏览器中用于准备 WhatsApp 或微信消息。本静态网站不会在服务器端接收或保存表单资料。您主动使用 WhatsApp 或微信发送时，相关平台根据各自的隐私政策处理信息。",
-    enBody: "When you complete a quotation or visit request, the information is used in your browser only to prepare a WhatsApp or WeChat message. This static website does not receive or store form data on a server. If you choose to send the message, the selected platform processes it under its own privacy policy.",
+    zhBody: "当您提交商业询价或考察申请时，公司、国家、联系人、邮箱或微信、采购或参观需求、留言及同意状态将通过 EmailJS 及其连接的邮件服务发送给 GANLAN GOLD，以便处理申请。您也可选择在浏览器中准备 WhatsApp 或微信消息并自行发送。",
+    enBody: "When you submit a quotation or visit request, your company, country, contact details, purchasing or visit requirements, message and consent status are sent to GANLAN GOLD through EmailJS and its connected email provider to handle your request. You may alternatively prepare a WhatsApp or WeChat message in your browser and send it yourself.",
   },
   {
     zhTitle: "使用目的",
     enTitle: "Purpose",
-    zhBody: "表单用于组织商业联系内容。仅当您明确选择通过 WhatsApp 发送或复制至微信并自行发送后，联系人员才有可能收到您的信息。填写表单不构成商业订单、正式报价或考察确认。",
-    enBody: "The forms organize a commercial inquiry. The team can receive your information only after you choose WhatsApp or copy and send the message through WeChat. Completing a form does not create an order, formal quotation, or confirmed visit.",
+    zhBody: "您提交的信息用于处理询价或安排考察，并通过您提供的联系方式跟进。提交申请不构成商业订单、正式报价或考察日期确认。",
+    enBody: "Submitted information is used to handle your inquiry or coordinate a visit and follow up using your contact details. A submission does not create an order, formal quotation or confirmed visit.",
   },
   {
     zhTitle: "存储与接收方",
     enTitle: "Storage and recipients",
-    zhBody: "网站没有数据库或表单接收后端。消息由您选择的通信平台传输，可能涉及跨境处理。发送之前请自行核对信息和对方的联系方式。",
-    enBody: "The website has no database or form-receiving backend. Your chosen communication platform transmits the message and may process it across borders. Review the information and recipient details before sending.",
+    zhBody: "本网站没有数据库或表单接收后端。提交时，EmailJS、连接的邮件服务及授权业务接收方会处理申请资料，可能涉及跨境处理。若选择 WhatsApp 或微信，相应平台按其政策处理信息。",
+    enBody: "The website has no database or form-receiving backend. EmailJS, the connected email provider and authorized business recipients process submitted requests, potentially across borders. If you choose WhatsApp or WeChat, that platform processes your message under its policies.",
   },
   {
     zhTitle: "保留、更正与删除",
     enTitle: "Retention and your choices",
-    zhBody: "本站本身不保存询价表单内容。通过 WhatsApp 或微信发送后的保存期限取决于通信平台及接收方的相关政策。您可通过公开联系方式提出信息查询、更正或删除请求；详细法律文本仍需审核。",
-    enBody: "This site does not retain inquiry-form content. Retention after sending through WhatsApp or WeChat depends on the platform and recipient policies. You may use the published contact channels to request access, correction, or deletion; the detailed legal text still requires review.",
+    zhBody: "本站本身不持久保存表单内容。提交后，邮件及相关记录的保留取决于 EmailJS、邮件服务和业务接收方的政策；其他通信平台适用各自政策。您可通过公开联系方式申请查询、更正或删除；详细法律文本仍需审核。",
+    enBody: "This site does not persist form content. Retention of submitted emails and associated records depends on EmailJS, the email provider and business recipients; alternative messaging platforms apply their own policies. Use the published contact channels to request access, correction or deletion; the detailed legal text still requires review.",
   },
   {
     zhTitle: "联系",
@@ -69,8 +69,8 @@ export const termsSections: readonly LegalSection[] = [
   {
     zhTitle: "询价性质",
     enTitle: "Nature of inquiries",
-    zhBody: "网站表单用于准备非约束性商业询价消息。本网站不自动发送或存储询价。您须主动通过 WhatsApp 或微信发送消息；发送也不构成订单接受、供货承诺、考察确认或正式报价。",
-    enBody: "The website forms prepare non-binding commercial inquiry messages. This site does not send or store inquiries automatically. You must send the message through WhatsApp or WeChat, and doing so does not constitute order acceptance, a supply commitment, visit confirmation, or a formal quotation.",
+    zhBody: "网站表单用于提交非约束性商业询价或考察申请。点击发送将通过 EmailJS 发送给授权业务接收方；您也可自行通过 WhatsApp 或微信发送准备好的消息。提交不构成订单接受、供货承诺、考察确认或正式报价。",
+    enBody: "The website forms submit non-binding quotation or visit requests. Clicking send transmits the request through EmailJS to authorized business recipients; you may alternatively send a prepared message through WhatsApp or WeChat. Submission does not constitute order acceptance, a supply commitment, visit confirmation or a formal quotation.",
   },
   {
     zhTitle: "价格与汇率",

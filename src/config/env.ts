@@ -1,4 +1,4 @@
-/** B2B inquiry is prepared in WhatsApp on the visitor's own device. */
+/** Existing direct-message alternatives for the static EmailJS forms. */
 export const CONTACT_WHATSAPP = {
   quote: "33634142632", // Lassad
   visit: "40724815229", // Fouad

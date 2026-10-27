@@ -1,65 +1,136 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { useHydrated } from "@/components/ui/useHydrated";
 import { CONTACT_WHATSAPP } from "@/config/env";
-import zh from "@/i18n/zh-CN.json";
-import en from "@/i18n/en.json";
-import { useLanguage } from "@/i18n/LanguageProvider";
+import { useLanguage, type Language } from "@/i18n/LanguageProvider";
+import {
+  formatLeadMessage,
+  type FieldErrors,
+  type Validation,
+} from "@/lib/forms/lead";
+import { sendLead, LeadSendError, LeadSendTimeout } from "@/services/emailjs";
+import type { EmailParams, LeadKind } from "@/types/emailjs";
 
-type Handoff = { status: "ready"; message: string; whatsappUrl: string; copied: boolean };
-type State = { status: "idle" } | { status: "error"; errors: string[] } | Handoff;
-
-export function text(form: FormData, key: string): string {
-  return String(form.get(key) ?? "").trim();
-}
-
-/** Static, privacy-respecting form: no API, no persistence, no false "received" state.
- * The user must choose to send the prepared message via their own WhatsApp/WeChat app.
- */
+type Status =
+  | "idle"
+  | "validation"
+  | "ready"
+  | "sending"
+  | "success"
+  | "failure"
+  | "cooldown"
+  | "busy"
+  | "unconfirmed";
+type Handoff = { message: string; whatsappUrl: string; copied: boolean };
 export function useLeadForm<T>(options: {
-  kind: "quote" | "visit";
-  validate: (form: HTMLFormElement) => { data?: T; errors: string[] };
-  format: (validated: T) => string;
+  kind: LeadKind;
+  validate: (values: FormData) => Validation<T>;
+  params: (data: T, language: Language) => EmailParams;
+  onSuccess?: () => void;
 }) {
-  const [state, setState] = useState<State>({ status: "idle" });
+  const [status, setStatus] = useState<Status>("idle");
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [handoff, setHandoff] = useState<Handoff>();
+  const [copyFailed, setCopyFailed] = useState(false);
+  const busy = useRef(false);
   const hydrated = useHydrated();
   const { language } = useLanguage();
-  const t = language === "zh-CN" ? zh : en;
 
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const validation = options.validate(event.currentTarget);
-    if (!validation.data || validation.errors.length) {
-      setState({ status: "error", errors: validation.errors.length ? validation.errors : [t.forms.retry] });
+  function validate(form: HTMLFormElement) {
+    const result = options.validate(new FormData(form));
+    setErrors(result.errors);
+    if (!result.data) {
+      setStatus("validation");
+      setHandoff(undefined);
+      // Let React render the field errors before focusing the summary.
+      requestAnimationFrame(() =>
+        form.querySelector<HTMLElement>(".form-summary")?.focus(),
+      );
       return;
     }
-    const message = options.format(validation.data);
-    const phone = CONTACT_WHATSAPP[options.kind];
-    setState({ status: "ready", message, whatsappUrl: `https://wa.me/${phone}?text=${encodeURIComponent(message)}`, copied: false });
+    const params = options.params(result.data, language);
+    const message = formatLeadMessage(options.kind, params, language);
+    setHandoff({
+      message,
+      whatsappUrl: `https://wa.me/${CONTACT_WHATSAPP[options.kind]}?text=${encodeURIComponent(message)}`,
+      copied: false,
+    });
+    setCopyFailed(false);
+    return params;
   }
-
-  async function copyPreparedMessage() {
-    if (state.status !== "ready") return;
+  function prepare(form: HTMLFormElement) {
+    if (busy.current) return;
+    if (validate(form)) setStatus("ready");
+  }
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (busy.current) return;
+    const form = event.currentTarget;
+    const params = validate(form);
+    if (!params) return;
+    busy.current = true;
+    setStatus("sending");
     try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(state.message);
-      } else {
+      await sendLead(options.kind, params);
+      form.reset();
+      options.onSuccess?.();
+      setHandoff(undefined);
+      setErrors({});
+      setStatus("success");
+    } catch (error) {
+      setStatus(
+        error instanceof LeadSendTimeout
+          ? "unconfirmed"
+          : error instanceof LeadSendError
+            ? error.reason
+            : "failure",
+      );
+    } finally {
+      busy.current = false;
+    }
+  }
+  async function copyPreparedMessage() {
+    if (!handoff) return;
+    try {
+      if (navigator.clipboard?.writeText)
+        await navigator.clipboard.writeText(handoff.message);
+      else {
         const input = document.createElement("textarea");
-        input.value = state.message;
+        input.value = handoff.message;
         input.style.position = "fixed";
         input.style.opacity = "0";
         document.body.appendChild(input);
         input.select();
-        const success = document.execCommand("copy");
+        const copied = document.execCommand("copy");
         input.remove();
-        if (!success) throw new Error("copy unavailable");
+        if (!copied) throw new Error("Copy unavailable");
       }
-      setState((prev) => prev.status === "ready" ? { ...prev, copied: true } : prev);
+      setHandoff((current) =>
+        current ? { ...current, copied: true } : current,
+      );
+      setCopyFailed(false);
     } catch {
-      setState({ status: "error", errors: [t.forms.copyError] });
+      setCopyFailed(true);
     }
   }
-
-  return { state, submit, hydrated, copyPreparedMessage };
+  function changed() {
+    if (busy.current) return;
+    setHandoff(undefined);
+    setCopyFailed(false);
+    setStatus("idle");
+    setErrors({});
+  }
+  return {
+    status,
+    errors,
+    handoff,
+    copyFailed,
+    submit,
+    prepare,
+    hydrated,
+    copyPreparedMessage,
+    changed,
+  };
 }
+export type LeadFormState = ReturnType<typeof useLeadForm>;

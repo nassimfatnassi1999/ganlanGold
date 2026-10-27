@@ -8,7 +8,7 @@ Site premium destiné aux importateurs professionnels d'huile d'olive marocaine,
 
 Deux versions se trouvent dans cette archive :
 
-- **`dist/`** — site statique *précompilé*, prêt à déposer à la racine de votre hébergement web **Gandi**. Fonctionne sans processus Node.js sur le serveur.
+- **`dist/`** — export statique pour Gandi ou Netlify, sans processus Node.js sur le serveur. La livraison EmailJS actuelle est une **prévisualisation avec envoi désactivé**, marquée `EMAILJS_PREVIEW_ONLY.txt`, car les identifiants du compte ne sont pas fournis. Renseigner `.env.local`, puis exécuter `npm run build` avant une mise en production avec envoi actif.
 - **`src/`, `public/`, `package.json`, `next.config.ts`** — code source Next.js/React/TypeScript permettant de modifier les contenus et de reconstruire la version statique.
 
 Le panorama d'accueil utilise **la dernière image GANLAN GOLD sans titre à gauche**, avec quatre conditionnements, montagnes et oliveraies ; les titres chinois/anglais et boutons sont de vrais éléments HTML, non intégrés dans l'image.
@@ -56,7 +56,7 @@ npm run dev
 
 Ouvrir `http://localhost:3000`.
 
-Compilation pour Gandi après une modification du code, du design ou des textes :
+Configurer d’abord les quatre identifiants publics EmailJS dans `.env.local` ([guide](docs/EMAILJS_SETUP.md)). Compilation pour Gandi après une modification du code, du design ou des textes :
 
 ```bash
 npm run build
@@ -82,18 +82,15 @@ Ce domaine est un exemple : **n'utilisez pas une fausse URL en production**.
 
 **Ne transférez ni `node_modules/`, ni `.next/`, ni le code source, ni la spécification PDF sur le serveur public.** Seul `dist/` est nécessaire. Le ZIP contient les sources et la spécification pour la maintenance hors ligne.
 
-## 5. Formulaires et absence de backend
+## 5. Formulaires EmailJS et absence de backend
 
-La spécification V7 demandait des formulaires de demande de devis et de visite. La version statique conserve les champs, la validation de base et le consentement, mais **ne peut pas envoyer, recevoir ou enregistrer des demandes sur un serveur sans backend, prestataire tiers ou adresse e-mail de réception**.
+Les deux formulaires transmettent les demandes via le SDK navigateur officiel **EmailJS**, avec un service et deux modèles indépendants. Le site reste entièrement statique. Les destinataires autorisés sont définis dans EmailJS ; aucune adresse destinataire ne vient du formulaire.
 
-La solution mise en place évite de simuler un envoi :
+Configurer les quatre identifiants publics dans `.env.local` en suivant [docs/EMAILJS_SETUP.md](docs/EMAILJS_SETUP.md). Les hooks `predev` et `prebuild` génèrent uniquement ces identifiants dans `public/config/emailjs.json`, copié automatiquement dans `dist/config/emailjs.json`. Le fichier `.env.local` lui-même n'est jamais publié. **Un build de production refuse les valeurs absentes ou les placeholders.** Sans compte configuré, `npm run build:preview` génère un export de prévisualisation avec envoi désactivé et un marqueur explicite ; il ne constitue pas une livraison de production configurée.
 
-- Le visiteur remplit et valide sa demande.
-- Le site prépare un **message récapitulatif** (produits/quantités, port, société, contact, etc.).
-- Le visiteur clique sur **WhatsApp** pour adresser sa demande à **Lassad** (devis) ou à **Fouad** (visite), ou **copie le texte** pour l'envoyer via WeChat.
-- **Aucune demande n'est automatiquement reçue** par le site ; aucun identifiant de requête fictif n'est généré.
+Le succès apparaît après acceptation par EmailJS ; une erreur conserve les champs et propose WhatsApp ou la copie du message pour WeChat. Le bouton de préparation manuelle reste disponible séparément. Les dates de visite ne sont jamais confirmées automatiquement. La notice de confidentialité explique désormais ce traitement externe.
 
-**Attention Chine continentale :** WhatsApp peut être inaccessible ; le QR code WeChat et la copie manuelle du message sont les alternatives prévues. Si le client souhaite ultérieurement un formulaire transmis automatiquement, il faut choisir une solution de réception (email/service de formulaire) et mettre à jour la notice de confidentialité.
+Les deux modèles HTML complets, réglages et aperçus sont dans [emailjs-templates/](emailjs-templates/README.md). Tests : [docs/EMAILJS_TESTING.md](docs/EMAILJS_TESTING.md). Aucun envoi réel n'est effectué par les tests automatisés. La réception réelle et l'accessibilité depuis la Chine continentale doivent être vérifiées avec le compte et les réseaux concernés.
 
 ## 6. Fonctionnalités et respect du cahier des charges
 
@@ -108,11 +105,11 @@ La solution mise en place évite de simuler un envoi :
 | MOQ **global de 7 500 L**, une section unique | Oui |
 | Mélange de formats de bouteilles | Oui |
 | Fouad + producteurs voisins ; traçabilité de lots | Oui |
-| Invitation à la visite / formulaire | Oui ; transmission à effectuer via messagerie |
+| Invitation à la visite / formulaire | Oui ; EmailJS + alternatives WhatsApp/WeChat |
 | Export, Incoterms FOB/FCA, exclusions, documents | Oui |
 | Contacts Gisèle, Lassad, Fouad dans cet ordre | Oui |
 | QR WeChat réels de Lassad et Fouad | Oui ; tests réels indispensables |
-| Formulaire de devis | Oui ; **préparation du message, pas réception automatique** |
+| Formulaire de devis | Oui ; EmailJS après configuration du compte |
 | Pages confidentialité / mentions légales / conditions | Oui ; **textes à valider** |
 | SEO chinois, métadonnées, responsive | Oui ; vérifier le domaine de production |
 | Back-office, taux ECB, conversion automatique | **Supprimés sur instruction du client** |
@@ -146,11 +143,11 @@ Les photos produits extraites du PDF restent limitées par la résolution d'orig
 - Configuration domaine, certificat HTTPS, sitemap et performances constatées sur réseau chinois testés.
 - Test réel des deux parcours de contact sur desktop et mobile.
 
-## 9. Tests, conformité et limites de vérification (27 octobre 2026)
+## 9. Vérifications historiques et nouvelle intégration EmailJS
 
-Rapport détaillé : `docs/V7_COMPLIANCE_AUDIT.md`.
+Les résultats actuels de l’intégration sont dans [docs/EMAILJS_TESTING.md](docs/EMAILJS_TESTING.md). Les paragraphes suivants décrivent une livraison antérieure et ne constituent pas les résultats de cette intégration. Rapport historique : `docs/V7_COMPLIANCE_AUDIT.md`.
 
-**Vérifications effectuées sur cette révision :** `node scripts/check-dist.mjs` (réussi), `node --check public/interactive/olive-journey.js` (réussi), comparaison de la structure statique (quatre produits, une section MOQ, liens internes, contacts, prix et fichiers d'images), empreintes SHA-256 des deux QR codes officiels, inspection des images dérivées et prévisualisation du SVG.
+**Vérifications effectuées sur cette révision :** `npm run verify:static` (réussi), `node --check public/interactive/olive-journey.js` (réussi), comparaison de la structure statique (quatre produits, une section MOQ, liens internes, contacts, prix et fichiers d'images), empreintes SHA-256 des deux QR codes officiels, inspection des images dérivées et prévisualisation du SVG.
 
 **Limitation vérifiable :** l'environnement de reconstruction n'avait pas accès aux dépendances complètes nécessaires au nouveau build Next.js ; une tentative `npm ci` a échoué à cause d'un paquet non présent dans le cache puis d'un accès réseau expiré. La sortie `dist/` est donc celle **déjà compilée et fournie par le client**, mise à jour directement avec les nouvelles images optimisées, feuilles CSS, scripts et liens. Le nouveau code source est inclus pour les prochaines reconstructions sur ton Mac, mais **je ne prétends pas avoir effectué un nouveau `npm run build` ou des tests Playwright complets** sur cette révision. L'accès Chromium aux pages locales a également été bloqué par l'environnement d'exécution.
 
@@ -167,7 +164,7 @@ npm run verify:static
 
 Attention : **`npm run build` régénère `dist/`**. Le fichier `src/app/layout.tsx` inclut désormais automatiquement les deux ressources d'animation, et `public/images/` contient les quatre nouveaux fichiers produits : ces améliorations seront conservées au prochain build.
 
-Le déploiement des fichiers `dist/` est prévu sur un hébergement statique Gandi. Les formulaires ne sont **pas** transmis automatiquement ; l'utilisateur les envoie lui-même par WhatsApp ou copie pour WeChat. Il s'agit d'une limite assumée du choix sans backend par rapport à V7.
+Le déploiement des fichiers `dist/` fonctionne sur Gandi ou Netlify statique. EmailJS transmet les formulaires après configuration du compte ; les alternatives WhatsApp/WeChat sont conservées.
 
 ## 10. Licence et ressources
 
