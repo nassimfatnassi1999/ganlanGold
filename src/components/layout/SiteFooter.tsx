@@ -1,6 +1,7 @@
 import zh from "@/i18n/zh-CN.json";
 import en from "@/i18n/en.json";
 import { TranslatedText } from "@/i18n/TranslatedText";
+import { CONTACT_EMAIL } from "@/config/env";
 
 export function SiteFooter() {
   return (
@@ -12,6 +13,7 @@ export function SiteFooter() {
             <small>Moroccan Olive Oil</small>
           </a>
           <p><TranslatedText zh={zh.footer.description} en={en.footer.description} /></p>
+          <a className="footer-email" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
         </div>
         <nav aria-label="法律与管理链接">
           <a href="/privacy"><TranslatedText zh={zh.footer.privacy} en={en.footer.privacy} /></a>

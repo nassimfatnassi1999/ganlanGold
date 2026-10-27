@@ -1,5 +1,6 @@
 import zh from "@/i18n/zh-CN.json";
 import { PRODUCT_SPECS } from "@/lib/products/catalog";
+import { CONTACT_EMAIL } from "@/config/env";
 
 type ContactPointJsonLd = Readonly<{
   "@type": "ContactPoint";
@@ -15,6 +16,7 @@ type OrganizationJsonLd = Readonly<{
   name: "GANLAN GOLD";
   url: string;
   description: string;
+  email: string;
   contactPoint: readonly ContactPointJsonLd[];
 }>;
 
@@ -40,6 +42,7 @@ export function buildSiteJsonLd(siteUrl: string): Readonly<{
     name: "GANLAN GOLD",
     url: `${origin}/`,
     description: zh.meta.description,
+    email: CONTACT_EMAIL,
     contactPoint: [
       {
         "@type": "ContactPoint",

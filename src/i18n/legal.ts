@@ -33,8 +33,8 @@ export const privacySections: readonly LegalSection[] = [
   {
     zhTitle: "联系",
     enTitle: "Contact",
-    zhBody: "隐私请求可先通过公开联系页所列团队渠道提出。正式隐私负责人和法定联系地址尚待企业确认，公开上线前必须补充。",
-    enBody: "Privacy requests may be raised through the team channels on the public contact page. The formal privacy contact and legal address still require company confirmation before public launch.",
+    zhBody: "隐私请求可通过下方联系邮箱或公开联系页所列团队渠道提出。正式隐私负责人和法定联系地址尚待企业确认，公开上线前必须补充。",
+    enBody: "Privacy requests may be raised through the contact email below or the team channels on the public contact page. The formal privacy contact and legal address still require company confirmation before public launch.",
   },
 ];
 
@@ -42,8 +42,8 @@ export const legalNoticeSections: readonly LegalSection[] = [
   {
     zhTitle: "网站运营信息",
     enTitle: "Website operator",
-    zhBody: "品牌：GANLAN GOLD。经营主体法定名称、注册号、税务编号、注册地址、法定代表人及正式电子联系地址尚未提供。上述资料属于发布阻断项，不得以推测内容替代。",
-    enBody: "Brand: GANLAN GOLD. The operator’s legal name, registration and tax numbers, registered address, legal representative, and formal electronic contact have not yet been provided. These are launch-blocking details and must not be replaced with assumptions.",
+    zhBody: "品牌：GANLAN GOLD。联系邮箱见下方。经营主体法定名称、注册号、税务编号、注册地址及法定代表人尚未提供。上述资料属于发布阻断项，不得以推测内容替代。",
+    enBody: "Brand: GANLAN GOLD. The contact email is provided below. The operator’s legal name, registration and tax numbers, registered address, and legal representative have not yet been provided. These are launch-blocking details and must not be replaced with assumptions.",
   },
   {
     zhTitle: "内容范围",

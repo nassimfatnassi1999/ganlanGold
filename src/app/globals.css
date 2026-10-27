@@ -1216,6 +1216,14 @@ html[data-language="en"] .language-content--en {
   grid-template-columns: repeat(3, 1fr);
 }
 
+.contact-email {
+  text-align: center;
+}
+
+.contact-email .contact-link {
+  max-width: 100%;
+}
+
 .contact-card {
   position: relative;
   min-width: 0;
@@ -1341,6 +1349,13 @@ html[data-language="en"] .language-content--en {
   color: rgb(247 241 230 / 0.7);
 }
 
+.footer-email {
+  display: inline-block;
+  margin-top: var(--space-4);
+  color: var(--gold-400);
+  overflow-wrap: anywhere;
+}
+
 .footer-english {
   margin-top: var(--space-2);
   font-size: 0.78rem;
@@ -1409,6 +1424,11 @@ html[data-language="en"] .language-content--en {
 
 .legal-content {
   margin-top: var(--space-12);
+}
+
+.legal-email {
+  margin-top: var(--space-8);
+  overflow-wrap: anywhere;
 }
 
 .legal-content section + section {

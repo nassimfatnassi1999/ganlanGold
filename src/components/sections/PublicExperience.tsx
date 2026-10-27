@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { ArrowRight, Check, FileText, Globe2, MapPin, PackageCheck, Phone, Sprout } from "lucide-react";
+import { ArrowRight, Check, FileText, Globe2, Mail, MapPin, PackageCheck, Phone, Sprout } from "lucide-react";
+import { CONTACT_EMAIL } from "@/config/env";
 import { ASSET_PATHS } from "@/lib/assets";
 import type { ProductSpec } from "@/lib/products/catalog";
 import zh from "@/i18n/zh-CN.json";
@@ -119,6 +120,9 @@ export function PublicExperience({ products }: { products: readonly PublicProduc
         <section id="contact" className="section contact-section" aria-labelledby="contact-title">
           <div className="section-inner">
             <BilingualHeading id="contact-title" eyebrow={zh.contact.eyebrow} englishEyebrow={en.contact.eyebrow} title={zh.contact.title} english={en.contact.title} align="center" />
+            <p className="contact-email">
+              <a className="contact-link" href={`mailto:${CONTACT_EMAIL}`}><Mail size={18} aria-hidden="true" />{CONTACT_EMAIL}</a>
+            </p>
             <div className="contact-grid">
               <ScrollReveal as="article" className="contact-card contact-card--primary">
                 <span className="contact-number">01</span><h3>Gisèle</h3>
