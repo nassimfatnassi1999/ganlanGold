@@ -17,8 +17,11 @@ Toutes les images chargées à l’exécution sont centralisées dans `public/im
 | `public/images/groves/` | Atmosphère horizontale et recadrage vertical net | Fonds Visite et section Origine |
 | `public/images/qr/` | QR WeChat de Lassad et Fouad en PNG | Cartes de contact |
 | `public/images/brand/` | Motif d’olives en SVG | Texture décorative |
+| `public/images/olives/` | Trois branches photoréalistes isolées, WebP transparents 480 / 800 px | Interlude animé entre Origine et Visite |
 
 Les chemins applicatifs sont regroupés dans `src/lib/assets.ts`. Les deux images employées directement depuis CSS sont `olive-pattern.svg` et `olive-grove-atmosphere.webp`.
+
+Les trois compositions `branch-left`, `branch-center` et `branch-right` ont été générées avec imagegen le 27 octobre 2026 pour cet interlude décoratif. Elles ne représentent pas une photographie documentaire de la récolte. Les fichiers WebP conservent la transparence, réservent une marge autour des feuilles et totalisent environ 141 Ko en version mobile et 309 Ko en version desktop. Aucun service d’images externe n’est utilisé au chargement.
 
 ## Fichiers volontairement absents
 

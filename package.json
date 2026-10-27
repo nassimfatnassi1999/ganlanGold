@@ -8,7 +8,7 @@
     "build": "next build && node scripts/copy-out-to-dist.mjs && node scripts/check-dist.mjs",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
-    "test:e2e": "playwright test tests/e2e/public.spec.ts tests/e2e/forms.spec.ts tests/e2e/prices.spec.ts tests/e2e/release.spec.ts",
+    "test:e2e": "playwright test tests/e2e/public.spec.ts tests/e2e/forms.spec.ts tests/e2e/prices.spec.ts tests/e2e/release.spec.ts tests/e2e/olive.spec.ts",
     "preview": "npx serve dist",
     "verify:static": "node scripts/check-dist.mjs"
   },

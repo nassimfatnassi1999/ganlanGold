@@ -12,6 +12,7 @@ import { VisitForm } from "@/components/forms/VisitForm";
 import { BilingualHeading } from "@/components/ui/BilingualHeading";
 import { TranslatedText } from "@/i18n/TranslatedText";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import { OliveScrollSection } from "@/components/sections/OliveScrollSection";
 
 export type PublicProduct = ProductSpec & Readonly<{ zhDescription: string; enDescription: string }>;
 
@@ -82,6 +83,8 @@ export function PublicExperience({ products }: { products: readonly PublicProduc
             </ScrollReveal>
           </div>
         </section>
+
+        <OliveScrollSection />
 
         <section id="visit" className="section visit-section" aria-labelledby="visit-title">
           <div className="section-inner">

@@ -14,6 +14,11 @@ export const ASSET_PATHS = {
   brand: {
     olivePattern: "images/brand/olive-pattern.svg",
   },
+  olives: {
+    left: { desktop: "images/olives/branch-left-800.webp", mobile: "images/olives/branch-left-480.webp" },
+    center: { desktop: "images/olives/branch-center-800.webp", mobile: "images/olives/branch-center-480.webp" },
+    right: { desktop: "images/olives/branch-right-800.webp", mobile: "images/olives/branch-right-480.webp" },
+  },
   groves: {
     atmosphere: "images/groves/olive-grove-atmosphere.webp",
     origin: "images/groves/moroccan-groves-sharp.webp",
