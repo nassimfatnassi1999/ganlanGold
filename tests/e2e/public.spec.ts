@@ -74,3 +74,25 @@ test("English selection controls navigation, sections, footer, and legal pages",
   await expect(page.getByRole("heading", { level: 1, name: "Privacy Policy" })).toBeVisible();
   await expect(page.getByText("Information we collect", { exact: true })).toBeVisible();
 });
+
+test("static host metadata comments preserve hydration and saved language", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.addInitScript(() => localStorage.setItem("ganlan-language", "en"));
+  await page.route("**/*", async (route) => {
+    if (!route.request().isNavigationRequest()) return route.continue();
+    const response = await route.fetch();
+    const body = (await response.text()).replace(
+      /(<meta charset="utf-8"\s*\/?>)/i,
+      "$1\n<!-- Metadata comment inserted by static host -->",
+    );
+    await route.fulfill({ response, body });
+  });
+  await page.goto("/privacy/");
+  await expect(page.getByRole("heading", { level: 1, name: "Privacy Policy" })).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await page.goto("/");
+  await expect(page.locator("#quote button[type=submit]")).toBeEnabled();
+  await expect(page.getByRole("heading", { level: 1, name: "A Natural Gift from Morocco" })).toBeVisible();
+  expect(errors).toEqual([]);
+});

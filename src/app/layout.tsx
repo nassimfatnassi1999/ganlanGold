@@ -41,14 +41,13 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
   const jsonLd = serializeJsonLd(buildSiteJsonLd(siteUrl));
   return (
     <html lang="zh-CN" data-language="zh-CN" data-scroll-behavior="smooth" suppressHydrationWarning>
-      <head>
+      <head />
+      <body>
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var k="ganlan-language",v=localStorage.getItem(k),l=v==="en"||v==="zh-CN"?v:"zh-CN";document.documentElement.lang=l;document.documentElement.dataset.language=l}catch(e){document.documentElement.lang="zh-CN";document.documentElement.dataset.language="zh-CN"}})()`,
           }}
         />
-      </head>
-      <body>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
         <a className="skip-link" href="#main-content">
           跳至主要内容 / Skip to content
