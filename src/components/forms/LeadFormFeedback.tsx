@@ -4,54 +4,41 @@ import en from "@/i18n/en.json";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import type { LeadFormState } from "./useLeadForm";
 
-export function LeadFormFeedback({
-  lead,
-  kind,
-}: {
-  lead: LeadFormState;
-  kind: "quote" | "visit";
-}) {
+export function LeadFormFeedback({ lead }: { lead: LeadFormState }) {
   const { language } = useLanguage();
   const t = language === "zh-CN" ? zh : en;
+  const notification = {
+    idle: "",
+    ready: "",
+    validation: lead.errors.website ? t.forms.retry : t.forms.errorTitle,
+    sending: t.forms.sending,
+    success: t.forms.sent,
+    disabled: t.forms.emailUnavailable,
+    failure: t.forms.sendError,
+    cooldown: t.forms.cooldown,
+    busy: t.forms.busy,
+    unconfirmed: t.forms.unconfirmed,
+  }[lead.status];
+  const alert = [
+    "validation",
+    "failure",
+    "disabled",
+    "cooldown",
+    "busy",
+    "unconfirmed",
+  ].includes(lead.status);
   return (
     <>
-      {lead.status === "validation" ? (
-        <div className="form-summary" role="alert" tabIndex={-1}>
-          <strong>{t.forms.errorTitle}</strong>
-          <ul>
-            {[...new Set(Object.values(lead.errors))].map((code) => (
-              <li key={code}>{t.forms[code]}</li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-      {["failure", "cooldown", "busy", "unconfirmed", "disabled"].includes(lead.status) ? (
-        <div className="form-summary" role="alert">
-          {lead.status === "disabled"
-            ? t.forms.emailUnavailable
-            : lead.status === "cooldown"
-            ? t.forms.cooldown
-            : lead.status === "busy"
-              ? t.forms.busy
-              : lead.status === "unconfirmed"
-                ? t.forms.unconfirmed
-                : t.forms.sendError}
-        </div>
-      ) : null}
-      {lead.status === "success" ? (
-        <div className="lead-handoff" role="status">
-          {t.forms.sent}
-        </div>
+      {notification ? (
+        <p
+          className={`form-notification${lead.status === "success" ? " form-notification--success" : ""}`}
+          role={alert ? "alert" : "status"}
+        >
+          {notification}
+        </p>
       ) : null}
       {lead.handoff ? (
-        <div className="lead-handoff" role="status">
-          <p>
-            {lead.status === "sending"
-              ? t.forms.pendingAlternative
-              : kind === "quote"
-                ? t.forms.quoteNotSent
-                : t.forms.visitNotSent}
-          </p>
+        <div className="lead-handoff">
           <div className="lead-handoff-actions">
             <a
               className="button button--gold"
@@ -59,7 +46,7 @@ export function LeadFormFeedback({
               target="_blank"
               rel="noopener noreferrer"
             >
-              {kind === "quote" ? t.forms.whatsappQuote : t.forms.whatsappVisit}
+              {t.forms.openWhatsapp}
             </a>
             <button
               type="button"
@@ -69,8 +56,17 @@ export function LeadFormFeedback({
               {lead.handoff.copied ? t.forms.copied : t.forms.copy}
             </button>
           </div>
-          {lead.copyFailed ? <p role="alert">{t.forms.copyError}</p> : null}
-          <pre className="lead-message-preview">{lead.handoff.message}</pre>
+          <p role="status" className="copy-status">
+            {lead.handoff.copied
+              ? t.forms.copied
+              : lead.copyFailed
+                ? t.forms.copyError
+                : ""}
+          </p>
+          <details>
+            <summary>{t.forms.preview}</summary>
+            <pre className="lead-message-preview">{lead.handoff.message}</pre>
+          </details>
         </div>
       ) : null}
     </>

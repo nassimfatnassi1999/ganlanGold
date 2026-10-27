@@ -7,12 +7,17 @@ import { useLanguage } from "@/i18n/LanguageProvider";
 import {
   buildQuoteParams,
   capacityLabel,
-  totalLitres,
   validateQuote,
+  PRODUCT_IDS,
+  PACKAGE_ML,
+  formText,
+  type ContactMethod,
 } from "@/lib/forms/lead";
-import { TextAreaField, TextField } from "./FormField";
+import { ContactFields } from "./ContactFields";
+import { TextAreaField, TextField, FieldError } from "./FormField";
 import { LeadFormFeedback } from "./LeadFormFeedback";
 import { LeadFormControls } from "./LeadFormControls";
+import { formValues } from "./formValues";
 import { useLeadForm } from "./useLeadForm";
 
 export function QuoteForm({
@@ -21,20 +26,20 @@ export function QuoteForm({
   products: readonly Pick<ProductSpec, "id">[];
 }) {
   const [selected, setSelected] = useState<Record<string, boolean>>({});
-  const [belowPolicy, setBelowPolicy] = useState(false);
+  const [volume, setVolume] = useState(0);
+  const [method, setMethod] = useState<ContactMethod>("either");
+  const [unknownPort, setUnknownPort] = useState(false);
   const { language } = useLanguage();
   const t = language === "zh-CN" ? zh : en;
   const lead = useLeadForm({
     kind: "quote",
-    validate: (values) => {
-      const result = validateQuote(values);
-      setBelowPolicy(!!result.data && totalLitres(result.data.products) < 7500);
-      return result;
-    },
+    validate: validateQuote,
     params: buildQuoteParams,
     onSuccess: () => {
       setSelected({});
-      setBelowPolicy(false);
+      setVolume(0);
+      setMethod("either");
+      setUnknownPort(false);
     },
   });
   const error = (name: string) =>
@@ -44,15 +49,29 @@ export function QuoteForm({
       className="lead-form"
       noValidate
       onSubmit={lead.submit}
-      onChange={() => {
-        lead.changed();
-        setBelowPolicy(false);
+      onBlur={lead.blurred}
+      onPointerDownCapture={lead.pointerStarted}
+      onPointerUpCapture={lead.pointerEnded}
+      onPointerCancelCapture={lead.pointerEnded}
+      onKeyDownCapture={lead.pointerEnded}
+      onChange={(event) => {
+        lead.changed(event);
+        const values = formValues(event.currentTarget);
+        const selectedProducts = PRODUCT_IDS.filter(
+          (id) => values.get(`select-${id}`) === "on",
+        );
+        const counts = selectedProducts.map((id) => {
+          const raw = formText(values, `quantity-${id}`);
+          return /^\d+$/.test(raw) && Number(raw) <= 1_000_000
+            ? Number(raw) * PACKAGE_ML[id]
+            : NaN;
+        });
+        setVolume(counts.reduce((sum, count) => sum + count, 0) / 1000);
       }}
-      aria-busy={lead.status === "sending"}
     >
-      <LeadFormFeedback lead={lead} kind="quote" />
       <fieldset
         className="lead-form-fields"
+        aria-busy={lead.status === "sending"}
         disabled={lead.status === "sending"}
       >
         <div className="form-grid">
@@ -80,30 +99,32 @@ export function QuoteForm({
             autoComplete="name"
             error={error("contactPerson")}
           />
-          <TextField
-            id="quote-email"
-            name="email"
-            type="email"
-            label="电子邮箱"
-            english="Email"
-            autoComplete="email"
-            error={error("email")}
+          <ContactFields
+            kind="quote"
+            lead={lead}
+            method={method}
+            onMethodChange={setMethod}
           />
-          <TextField
-            id="quote-wechat"
-            name="wechat"
-            label="微信联系方式"
-            english="WeChat contact"
-            optional
-            error={error("wechat")}
-          />
-          <TextField
-            id="quote-port"
-            name="destinationPort"
-            label="目的港"
-            english="Destination port"
-            error={error("destinationPort")}
-          />
+          <div>
+            <TextField
+              id="quote-port"
+              name="destinationPort"
+              label="目的港"
+              english="Destination port"
+              error={error("destinationPort")}
+              disabled={unknownPort}
+              aria-required={!unknownPort}
+            />
+            <label className="port-option">
+              <input
+                type="checkbox"
+                name="destinationUnknown"
+                checked={unknownPort}
+                onChange={(event) => setUnknownPort(event.target.checked)}
+              />
+              {t.forms.notSure}
+            </label>
+          </div>
         </div>
         <fieldset
           className="product-picker"
@@ -112,11 +133,6 @@ export function QuoteForm({
           }
         >
           <legend>{t.quote.products}</legend>
-          {error("products") ? (
-            <p className="field-error" id="quote-products-error">
-              {error("products")}
-            </p>
-          ) : null}
           <div className="product-picker-grid">
             {products.map((product) => {
               const label = capacityLabel(product.id),
@@ -135,6 +151,10 @@ export function QuoteForm({
                     <input
                       type="checkbox"
                       name={`select-${product.id}`}
+                      aria-invalid={!!error("products")}
+                      aria-describedby={
+                        error("products") ? "quote-products-error" : undefined
+                      }
                       aria-label={
                         language === "zh-CN"
                           ? `选择 ${label}`
@@ -154,7 +174,8 @@ export function QuoteForm({
                     <input
                       id={id}
                       type="number"
-                      min="1"
+                      min="0"
+                      inputMode="numeric"
                       max="1000000"
                       step="1"
                       name={name}
@@ -168,17 +189,20 @@ export function QuoteForm({
                       aria-describedby={error(name) ? `${id}-error` : undefined}
                     />
                   </label>
-                  {error(name) ? (
-                    <small className="field-error" id={`${id}-error`}>
-                      {error(name)}
-                    </small>
-                  ) : null}
+                  <FieldError id={`${id}-error`} error={error(name)} />
                 </div>
               );
             })}
           </div>
+          <FieldError id="quote-products-error" error={error("products")} />
         </fieldset>
-        {belowPolicy ? (
+        {Number.isFinite(volume) && volume > 0 ? (
+          <p className="form-total">
+            {t.forms.totalLitres}:{" "}
+            {volume.toLocaleString(language, { maximumFractionDigits: 2 })}
+          </p>
+        ) : null}
+        {Number.isFinite(volume) && volume > 0 && volume < 7500 ? (
           <p className="form-dispatch-note">{t.quote.belowPolicy}</p>
         ) : null}
         <TextAreaField
@@ -192,6 +216,7 @@ export function QuoteForm({
         />
         <LeadFormControls lead={lead} kind="quote" />
       </fieldset>
+      <LeadFormFeedback lead={lead} />
     </form>
   );
 }

@@ -1,4 +1,5 @@
 "use client";
+import { CircleAlert } from "lucide-react";
 import type {
   InputHTMLAttributes,
   ReactNode,
@@ -17,6 +18,14 @@ type FieldProps = Readonly<{
   children?: ReactNode;
   error?: string;
 }>;
+export function FieldError({ id, error }: { id: string; error?: string }) {
+  return error ? (
+    <small className="field-error" id={id} aria-live="polite">
+      <CircleAlert aria-hidden="true" />
+      {error}
+    </small>
+  ) : null;
+}
 export function FieldLabel({
   id,
   label,
@@ -34,11 +43,7 @@ export function FieldLabel({
         {optional ? <small> · {t.forms.optional}</small> : null}
       </span>
       {children}
-      {error ? (
-        <small className="field-error" id={`${id}-error`}>
-          {error}
-        </small>
-      ) : null}
+      <FieldError id={`${id}-error`} error={error} />
     </label>
   );
 }
@@ -54,6 +59,7 @@ export function TextField({
     <FieldLabel {...{ id, label, english, optional, error }}>
       <input
         id={id}
+        aria-required={!optional}
         maxLength={FIELD_LIMITS[props.name ?? ""]}
         aria-invalid={!!error}
         aria-describedby={error ? `${id}-error` : undefined}

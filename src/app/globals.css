@@ -1716,3 +1716,28 @@ html[data-language="en"] .language-content--en {
 .form-field [aria-invalid="true"], .quantity-label [aria-invalid="true"] { border-color: #b54632; }
 .form-alternative { margin: .65rem 0 0 .65rem; }
 @media (max-width: 600px) { .form-alternative { margin-left: 0; width: 100%; white-space: normal; } }
+
+/* Guided form feedback stays close to the control or submission action. */
+.lead-form { min-width: 0; }
+.form-field input, .form-field select, .form-field textarea, .quantity-label input { min-width: 0; font-size: 1rem; scroll-margin-top: 8rem; }
+.form-field { font-size: .9375rem; }
+.field-error, .form-field .field-error { display: flex; align-items: flex-start; gap: .35rem; font-weight: 400; }
+.field-error svg { flex: 0 0 1rem; width: 1rem; height: 1rem; margin-top: .1rem; }
+.product-choice:has([aria-invalid="true"]) { border-color: #b54632; }
+.consent-row input[aria-invalid="true"] { outline: 1px solid #b54632; outline-offset: 3px; }
+.product-choice > label:first-child, .port-option, .consent-row { min-height: 44px; }
+.port-option { display: flex; align-items: center; gap: .6rem; color: var(--olive-900); font-size: .9rem; cursor: pointer; }
+.port-option input { accent-color: var(--olive-900); width: 1.1rem; height: 1.1rem; }
+.form-total { margin-top: var(--space-4); color: var(--olive-900); font-weight: 700; }
+.form-notification { margin-top: 1rem; padding: .75rem 1rem; border-left: 2px solid var(--gold-600); background: #fbf6e8; color: var(--olive-900); font-size: .9rem; overflow-wrap: anywhere; }
+.form-notification--success { border-color: var(--olive-700); background: rgb(49 93 69 / .08); }
+.lead-handoff { margin: .75rem 0 0; padding: 0; border: 0; background: transparent; }
+.lead-handoff-actions { margin-top: 0; }
+.lead-handoff-actions .button { flex: 1 1 10rem; text-align: center; padding-inline: .8rem; }
+.lead-handoff details { margin-top: .5rem; }
+.lead-handoff summary { display: list-item; min-height: 44px; padding-block: .75rem; cursor: pointer; font-size: .9rem; }
+.lead-message-preview { max-height: 20rem; overflow: auto; }
+.copy-status:empty { display: none; }
+.form-spinner { width: 1.1rem; height: 1.1rem; animation: form-spin 1s linear infinite; }
+@keyframes form-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .form-spinner { animation: none; } }

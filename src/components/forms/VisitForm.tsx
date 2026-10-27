@@ -1,4 +1,7 @@
 "use client";
+import { useState } from "react";
+import type { ContactMethod } from "@/lib/forms/lead";
+import { ContactFields } from "./ContactFields";
 import zh from "@/i18n/zh-CN.json";
 import en from "@/i18n/en.json";
 import { useLanguage } from "@/i18n/LanguageProvider";
@@ -9,12 +12,14 @@ import { LeadFormControls } from "./LeadFormControls";
 import { useLeadForm } from "./useLeadForm";
 
 export function VisitForm() {
+  const [method, setMethod] = useState<ContactMethod>("either");
   const { language } = useLanguage();
   const t = language === "zh-CN" ? zh : en;
   const lead = useLeadForm({
     kind: "visit",
     validate: validateVisit,
     params: buildVisitParams,
+    onSuccess: () => setMethod("either"),
   });
   const error = (name: string) =>
     lead.errors[name] ? t.forms[lead.errors[name]] : undefined;
@@ -24,11 +29,15 @@ export function VisitForm() {
       noValidate
       onSubmit={lead.submit}
       onChange={lead.changed}
-      aria-busy={lead.status === "sending"}
+      onBlur={lead.blurred}
+      onPointerDownCapture={lead.pointerStarted}
+      onPointerUpCapture={lead.pointerEnded}
+      onPointerCancelCapture={lead.pointerEnded}
+      onKeyDownCapture={lead.pointerEnded}
     >
-      <LeadFormFeedback lead={lead} kind="visit" />
       <fieldset
         className="lead-form-fields"
+        aria-busy={lead.status === "sending"}
         disabled={lead.status === "sending"}
       >
         <div className="form-grid">
@@ -56,22 +65,11 @@ export function VisitForm() {
             autoComplete="country-name"
             error={error("country")}
           />
-          <TextField
-            id="visit-email"
-            name="email"
-            type="email"
-            label="电子邮箱"
-            english="Email"
-            autoComplete="email"
-            error={error("email")}
-          />
-          <TextField
-            id="visit-wechat"
-            name="wechat"
-            label="微信联系方式"
-            english="WeChat contact"
-            optional
-            error={error("wechat")}
+          <ContactFields
+            kind="visit"
+            lead={lead}
+            method={method}
+            onMethodChange={setMethod}
           />
           <TextField
             id="visit-period"
@@ -84,6 +82,7 @@ export function VisitForm() {
             id="visit-count"
             name="visitors"
             type="number"
+            inputMode="numeric"
             min="1"
             max="50"
             step="1"
@@ -104,6 +103,7 @@ export function VisitForm() {
         />
         <LeadFormControls lead={lead} kind="visit" />
       </fieldset>
+      <LeadFormFeedback lead={lead} />
     </form>
   );
 }

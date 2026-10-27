@@ -37,7 +37,16 @@ test("mixed package volumes are exact and selected invalid quantities cannot be 
     ]),
     23.5,
   );
-  for (const quantity of ["", "0", "-1", "1.5", "1000001", "Infinity", "NaN"]) {
+  for (const quantity of [
+    "",
+    "-1",
+    "1.5",
+    "1000001",
+    "Infinity",
+    "NaN",
+    "1e2",
+    "0x10",
+  ]) {
     const result = validateQuote(
       form({ "select-5l": "on", "quantity-5l": quantity }),
     );
@@ -94,11 +103,10 @@ test("email, contact preferences, consent, required fields and length limits are
   assert.ok(validateVisit(form({ email: "", wechat: "" })).errors.email);
   assert.ok(
     validateVisit(form({ email: "", wechat: "wx", contactMethod: "email" }))
-      .errors.contactMethod,
+      .errors.email,
   );
   assert.ok(
-    validateVisit(form({ wechat: "", contactMethod: "wechat" })).errors
-      .contactMethod,
+    validateVisit(form({ wechat: "", contactMethod: "wechat" })).errors.wechat,
   );
   assert.ok(
     validateVisit(form({ contactMethod: "arbitrary" })).errors.contactMethod,
@@ -118,4 +126,64 @@ test("manual messages use readable localized labels rather than EmailJS contract
   assert.match(message, /Total requested litres: 7500.00/);
   assert.ok(!message.includes("contact_name"));
   assert.match(formatLeadMessage("quote", params, "zh-CN"), /联系人: Lin/);
+});
+
+test("zero package counts are retained when another selected product makes total positive", () => {
+  const result = validateQuote(form({ "select-5l": "on", "quantity-5l": "0" }));
+  assert.deepEqual(result.errors, {});
+  assert.equal(
+    result.data?.products.find((p) => p.productId === "5l")?.quantity,
+    0,
+  );
+  const zero = validateQuote(form({ "quantity-250ml": "0" }));
+  assert.equal(zero.errors.products, "totalRequired");
+  assert.equal(zero.data, undefined);
+});
+test("preferred contacts require their own field and accept international WeChat IDs", () => {
+  for (const validate of [validateQuote, validateVisit]) {
+    assert.equal(
+      validate(
+        form({ email: "", wechat: "采购 王 + 86", contactMethod: "email" }),
+      ).errors.email,
+      "emailRequired",
+    );
+    assert.equal(
+      validate(form({ contactMethod: "wechat" })).errors.wechat,
+      "wechatRequired",
+    );
+    assert.ok(
+      validate(
+        form({ email: "", wechat: "采购 王 + 86", contactMethod: "wechat" }),
+      ).data,
+    );
+  }
+});
+test("uncertain port is explicit and mapped in the visitor language", () => {
+  const result = validateQuote(
+    form({ destinationPort: "", destinationUnknown: "on" }),
+  );
+  assert.deepEqual(result.errors, {});
+  assert.equal(
+    buildQuoteParams(result.data!, "en", date).destination_port,
+    "Not sure yet",
+  );
+  assert.equal(
+    buildQuoteParams(result.data!, "zh-CN", date).destination_port,
+    "尚未确定",
+  );
+});
+
+test("missing preferred contact does not invalidate the optional alternative", () => {
+  for (const validate of [validateQuote, validateVisit]) {
+    const email = validate(
+      form({ email: "", wechat: "", contactMethod: "email" }),
+    );
+    assert.equal(email.errors.email, "emailRequired");
+    assert.equal(email.errors.wechat, undefined);
+    const wechat = validate(
+      form({ email: "", wechat: "", contactMethod: "wechat" }),
+    );
+    assert.equal(wechat.errors.wechat, "wechatRequired");
+    assert.equal(wechat.errors.email, undefined);
+  }
 });

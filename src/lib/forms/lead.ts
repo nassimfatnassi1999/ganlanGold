@@ -9,16 +9,23 @@ export const PACKAGE_ML = Object.fromEntries(
   PRODUCT_SPECS.map(({ id, capacityMl }) => [id, capacityMl]),
 ) as Record<ProductId, number>;
 export const PRODUCT_IDS = Object.keys(PACKAGE_ML) as ProductId[];
-export const FIELD_LIMITS: Record<string, number> = {
-  company: 160,
-  country: 100,
-  contactPerson: 120,
-  email: 254,
-  wechat: 100,
-  destinationPort: 160,
-  preferredPeriod: 160,
-  message: 4000,
+// A small shared schema keeps browser limits and both validators consistent.
+const TEXT_FIELD_SCHEMA = {
+  company: { maxLength: 160, required: true },
+  country: { maxLength: 100, required: true },
+  contactPerson: { maxLength: 120, required: true },
+  email: { maxLength: 254, required: false },
+  wechat: { maxLength: 100, required: false },
+  destinationPort: { maxLength: 160, required: false },
+  preferredPeriod: { maxLength: 160, required: false },
+  message: { maxLength: 4000, required: false },
 };
+export const FIELD_LIMITS: Record<string, number> = Object.fromEntries(
+  Object.entries(TEXT_FIELD_SCHEMA).map(([name, rule]) => [
+    name,
+    rule.maxLength,
+  ]),
+);
 export type ContactMethod = "email" | "wechat" | "either";
 export type CommonLead = {
   company: string;
@@ -33,6 +40,7 @@ export type CommonLead = {
 export type ProductQuantity = { productId: ProductId; quantity: number };
 export type QuoteLead = CommonLead & {
   destinationPort: string;
+  destinationUnknown?: boolean;
   products: ProductQuantity[];
 };
 export type VisitLead = CommonLead & {
@@ -44,6 +52,9 @@ export type ValidationCode =
   | "contactRequired"
   | "invalidEmail"
   | "contactPreference"
+  | "emailRequired"
+  | "wechatRequired"
+  | "totalRequired"
   | "consentRequired"
   | "visitorsRange"
   | "quantityRange"
@@ -62,10 +73,10 @@ export const isValidEmail = (value: string) =>
 function common(form: FormData): { data: CommonLead; errors: FieldErrors } {
   const errors: FieldErrors = {};
   const field = (name: string) => formText(form, name);
-  for (const name of ["company", "country", "contactPerson"])
-    if (!field(name)) errors[name] = "requiredFields";
-  for (const [name, limit] of Object.entries(FIELD_LIMITS))
-    if (field(name).length > limit) errors[name] = "tooLong";
+  for (const [name, rule] of Object.entries(TEXT_FIELD_SCHEMA)) {
+    if (rule.required && !field(name)) errors[name] = "requiredFields";
+    if (field(name).length > rule.maxLength) errors[name] = "tooLong";
+  }
   // Keep headers/short fields single-line; only the message allows multiline content.
   for (const name of Object.keys(FIELD_LIMITS).filter(
     (name) => name !== "message",
@@ -75,16 +86,14 @@ function common(form: FormData): { data: CommonLead; errors: FieldErrors } {
   const email = field("email"),
     wechat = field("wechat"),
     preference = field("contactMethod");
-  if (!email && !wechat) {
+  if (!email && !wechat && preference === "either") {
     errors.email = "contactRequired";
     errors.wechat = "contactRequired";
   }
   if (email && !isValidEmail(email)) errors.email = "invalidEmail";
-  if (
-    !["email", "wechat", "either"].includes(preference) ||
-    (preference === "email" && !email) ||
-    (preference === "wechat" && !wechat)
-  )
+  if (preference === "email" && !email) errors.email = "emailRequired";
+  if (preference === "wechat" && !wechat) errors.wechat = "wechatRequired";
+  if (!["email", "wechat", "either"].includes(preference))
     errors.contactMethod = "contactPreference";
   if (form.get("consent") !== "on") errors.consent = "consentRequired";
   if (field("website")) errors.website = "retry";
@@ -105,14 +114,19 @@ function common(form: FormData): { data: CommonLead; errors: FieldErrors } {
 export function validateQuote(form: FormData): Validation<QuoteLead> {
   const { data, errors } = common(form);
   const destinationPort = formText(form, "destinationPort");
-  if (!destinationPort) errors.destinationPort = "requiredFields";
+  const destinationUnknown = form.get("destinationUnknown") === "on";
+  if (!destinationPort && !destinationUnknown)
+    errors.destinationPort = "requiredFields";
+  if (destinationUnknown) delete errors.destinationPort;
   const products: ProductQuantity[] = [];
   for (const productId of PRODUCT_IDS)
     if (form.get(`select-${productId}`) === "on") {
-      const quantity = Number(formText(form, `quantity-${productId}`));
+      const raw = formText(form, `quantity-${productId}`);
+      const quantity = Number(raw);
       if (
+        !/^\d+$/.test(raw) ||
         !Number.isSafeInteger(quantity) ||
-        quantity < 1 ||
+        quantity < 0 ||
         quantity > 1_000_000
       )
         errors[`quantity-${productId}`] = "quantityRange";
@@ -120,11 +134,16 @@ export function validateQuote(form: FormData): Validation<QuoteLead> {
     }
   if (!PRODUCT_IDS.some((id) => form.get(`select-${id}`) === "on"))
     errors.products = "productRequired";
+  else if (
+    !Object.keys(errors).some((name) => name.startsWith("quantity-")) &&
+    totalLitres(products) <= 0
+  )
+    errors.products = "totalRequired";
   return {
     errors,
     data: Object.keys(errors).length
       ? undefined
-      : { ...data, destinationPort, products },
+      : { ...data, destinationPort, destinationUnknown, products },
   };
 }
 export function validateVisit(form: FormData): Validation<VisitLead> {
@@ -186,7 +205,11 @@ export function buildQuoteParams(
     String(data.products.find((item) => item.productId === id)?.quantity ?? 0);
   return {
     ...commonParams(data, language, now),
-    destination_port: data.destinationPort,
+    destination_port: data.destinationUnknown
+      ? language === "zh-CN"
+        ? "尚未确定"
+        : "Not sure yet"
+      : data.destinationPort,
     products_summary: data.products
       .map(
         (item) =>

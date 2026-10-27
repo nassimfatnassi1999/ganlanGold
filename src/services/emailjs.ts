@@ -56,9 +56,15 @@ export async function sendLead(
           );
         }),
       ]);
-      if (response.status < 200 || response.status >= 300)
-        throw new Error("Email request rejected");
+      if (response.status < 200 || response.status >= 300) throw response;
     } catch (error) {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "status" in error &&
+        [400, 401, 403, 404].includes(Number(error.status))
+      )
+        throw new LeadSendError("disabled");
       if (error instanceof LeadSendTimeout) {
         // The browser SDK cannot abort a send. Keep its lock until it settles,
         // but stop waiting in the UI; a late result must not reset edited fields.

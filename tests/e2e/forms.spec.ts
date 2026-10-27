@@ -42,18 +42,18 @@ test("quote and visit forms show localized inline validation without provider ca
   await page.goto("/#quote");
   await page.locator("#quote button[type=submit]").click();
   await expect(page.locator("#quote [role=alert]")).toContainText(
-    "请检查以下内容",
+    "请修正标出的信息",
   );
   await expect(page.locator("#quote-company")).toHaveAttribute(
     "aria-invalid",
     "true",
   );
   await expect(page.locator("#quote-company-error")).toContainText(
-    "请填写所有必填信息",
+    "请填写此项",
   );
   await page.locator("#visit button[type=submit]").click();
   await expect(page.locator("#visit [role=alert]")).toContainText(
-    "请检查以下内容",
+    "请修正标出的信息",
   );
   await expect(page.locator("#visit")).toContainText(
     "提交申请并不代表日期已获确认",
@@ -63,10 +63,10 @@ test("quote and visit forms show localized inline validation without provider ca
     .getByRole("button", { name: "English" })
     .click();
   await expect(page.locator("#quote [role=alert]")).toContainText(
-    "Please check the following",
+    "Please correct the highlighted fields.",
   );
   await expect(page.locator("#quote-company-error")).toHaveText(
-    "Complete all required fields.",
+    "Please complete this field.",
   );
   expect(calls).toBe(0);
 });
@@ -133,6 +133,11 @@ test("sending disables submit, rejects rapid duplicates, failure keeps values an
   await form.locator("button[type=submit]").click();
   await expect(form.locator("button[type=submit]")).toBeDisabled();
   await expect(form.locator("button[type=submit]")).toContainText("正在发送");
+  expect(
+    await form
+      .getByRole("status")
+      .evaluate((el) => el.closest('[aria-busy="true"]') === null),
+  ).toBe(true);
   await form.evaluate((element: HTMLFormElement) => element.requestSubmit());
   await expect.poll(() => calls).toBe(1);
   finish();
@@ -177,9 +182,7 @@ test("missing configuration never sends and keeps entered values; manual handoff
     "Automatic email submission is not currently available",
   );
   await expect(form.locator("[name=wechat]")).toHaveValue("buyer-wechat");
-  await form
-    .getByRole("button", { name: "Prepare WhatsApp / WeChat message" })
-    .click();
+  await form.locator("summary").click();
   await expect(form.locator(".lead-message-preview")).toContainText(
     "November 2026",
   );
@@ -192,10 +195,10 @@ test("honeypot, invalid preference, selected invalid quantity and missing consen
   const form = await fill(page, "quote", false);
   await form.locator("[name=contactMethod]").selectOption("email");
   await form.locator("[name=select-5l]").check();
-  await form.locator("[name=quantity-5l]").fill("0");
+  await form.locator("[name=quantity-5l]").fill("-1");
   await form.locator("[name=consent]").uncheck();
   await form.locator("button[type=submit]").click();
-  await expect(form.locator("[name=contactMethod]")).toHaveAttribute(
+  await expect(form.locator("[name=email]")).toHaveAttribute(
     "aria-invalid",
     "true",
   );
@@ -216,13 +219,16 @@ test("honeypot, invalid preference, selected invalid quantity and missing consen
 test("editing a prepared inquiry removes stale WhatsApp and copied data", async ({
   page,
 }) => {
+  await page.route("**/config/emailjs.json", (route) =>
+    route.fulfill({ json: { ...config, enabled: false } }),
+  );
   await page.goto("/#quote");
   const form = await fill(page, "quote");
-  await form.locator(".form-alternative").click();
+  await form.locator("button[type=submit]").click();
   await expect(form.locator(".lead-message-preview")).toContainText("30000");
   await form.locator("[name=quantity-250ml]").fill("40000");
   await expect(form.locator(".lead-message-preview")).toHaveCount(0);
-  await form.locator(".form-alternative").click();
+  await form.locator("button[type=submit]").click();
   await expect(form.locator(".lead-message-preview")).toContainText("40000");
   await expect(form.locator(".lead-message-preview")).toContainText("10000.00");
 });
@@ -260,36 +266,67 @@ test("a stalled provider times out without claiming failure or success and retai
   expect(calls).toBe(1);
   finish();
   await expect(form.locator("[name=company]")).toHaveValue("中国采购商 Buyer");
-  await expect(form.getByRole("status")).not.toContainText(
+  await expect(form).not.toContainText(
     "Your request has been sent successfully",
   );
 });
 
 for (const language of ["zh-CN", "en"])
   for (const kind of ["quote", "visit"] as const) {
-    test(`${kind} disabled in ${language} preserves input and provides manual contact without sending`, async ({ page }) => {
-      await page.route("**/config/emailjs.json", (route) => route.fulfill({ json: { ...config, enabled: false } }));
+    test(`${kind} disabled in ${language} preserves input and provides manual contact without sending`, async ({
+      page,
+    }) => {
+      await page.route("**/config/emailjs.json", (route) =>
+        route.fulfill({ json: { ...config, enabled: false } }),
+      );
       let calls = 0;
-      page.on("request", (request) => { if (request.url() === endpoint) calls++; });
+      page.on("request", (request) => {
+        if (request.url() === endpoint) calls++;
+      });
       await page.goto(`/#${kind}`);
-      if (language === "en") await page.getByRole("group", { name: "语言 / Language" }).getByRole("button", { name: "English" }).click();
+      if (language === "en")
+        await page
+          .getByRole("group", { name: "语言 / Language" })
+          .getByRole("button", { name: "English" })
+          .click();
       const form = await fill(page, kind);
       await form.locator("button[type=submit]").click();
-      await expect(form.getByRole("alert")).toContainText(language === "en" ? "Automatic email submission is not currently available" : "自动邮件提交暂不可用");
-      await expect(form.locator("[name=company]")).toHaveValue("中国采购商 Buyer");
+      await expect(form.getByRole("alert")).toContainText(
+        language === "en"
+          ? "Automatic email submission is not currently available"
+          : "自动邮件提交暂不可用",
+      );
+      await expect(form.locator("[name=company]")).toHaveValue(
+        "中国采购商 Buyer",
+      );
       await expect(form.locator("[name=consent]")).toBeChecked();
-      await expect(form.getByRole("link", { name: /WhatsApp/ })).toHaveAttribute("href", /^https:\/\/wa.me\//);
-      await expect(form.locator(".lead-message-preview")).toContainText("中国采购商 Buyer");
-      await expect(form.getByRole("button", { name: language === "en" ? "Copy for WeChat" : "复制信息供微信发送" })).toBeVisible();
+      await expect(
+        form.getByRole("link", { name: /WhatsApp/ }),
+      ).toHaveAttribute("href", /^https:\/\/wa.me\//);
+      await expect(form.locator(".lead-message-preview")).toContainText(
+        "中国采购商 Buyer",
+      );
+      await expect(
+        form.getByRole("button", {
+          name: language === "en" ? "Copy for WeChat" : "复制信息供微信发送",
+        }),
+      ).toBeVisible();
       expect(calls).toBe(0);
     });
   }
 
-test("a runtime JSON edit activates sending on a later submission without reload or rebuild", async ({ page }) => {
+test("a runtime JSON edit activates sending on a later submission without reload or rebuild", async ({
+  page,
+}) => {
   let enabled = false;
-  await page.route("**/config/emailjs.json", (route) => route.fulfill({ json: { ...config, enabled } }));
+  await page.route("**/config/emailjs.json", (route) =>
+    route.fulfill({ json: { ...config, enabled } }),
+  );
   let calls = 0;
-  await page.route(endpoint, async (route) => { calls++; await route.fulfill({ status: 200, body: "OK" }); });
+  await page.route(endpoint, async (route) => {
+    calls++;
+    await route.fulfill({ status: 200, body: "OK" });
+  });
   await page.goto("/#quote");
   const form = await fill(page, "quote");
   await form.locator("button[type=submit]").click();
@@ -297,27 +334,328 @@ test("a runtime JSON edit activates sending on a later submission without reload
   expect(calls).toBe(0);
   enabled = true;
   await form.locator("button[type=submit]").click();
-  await expect(form.getByRole("status").first()).toContainText("您的申请已成功发送");
+  await expect(form.getByRole("status").first()).toContainText(
+    "您的申请已成功发送",
+  );
   expect(calls).toBe(1);
 });
 
-for (const failure of ["missing", "network", "incomplete", "nonboolean"] as const) {
-  test(`runtime config ${failure} safely disables sending`, async ({ page }) => {
+for (const failure of [
+  "missing",
+  "network",
+  "incomplete",
+  "nonboolean",
+] as const) {
+  test(`runtime config ${failure} safely disables sending`, async ({
+    page,
+  }) => {
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await page.route("**/config/emailjs.json", (route) => {
-      if (failure === "missing") return route.fulfill({ status: 404, body: "Not found" });
+      if (failure === "missing")
+        return route.fulfill({ status: 404, body: "Not found" });
       if (failure === "network") return route.abort();
-      return route.fulfill({ json: failure === "incomplete" ? { ...config, serviceId: "" } : { ...config, enabled: "true" } });
+      return route.fulfill({
+        json:
+          failure === "incomplete"
+            ? { ...config, serviceId: "" }
+            : { ...config, enabled: "true" },
+      });
     });
     let calls = 0;
-    page.on("request", (request) => { if (request.url() === endpoint) calls++; });
+    page.on("request", (request) => {
+      if (request.url() === endpoint) calls++;
+    });
     await page.goto("/#quote");
     const form = await fill(page, "quote");
     await form.locator("button[type=submit]").click();
     await expect(form.getByRole("alert")).toContainText("自动邮件提交暂不可用");
-    await expect(form.locator("[name=company]")).toHaveValue("中国采购商 Buyer");
+    await expect(form.locator("[name=company]")).toHaveValue(
+      "中国采购商 Buyer",
+    );
     expect(calls).toBe(0);
     expect(errors).toEqual([]);
   });
 }
+
+for (const kind of ["quote", "visit"] as const) {
+  test(`${kind} guides first error and retains other errors while correcting touched fields`, async ({
+    page,
+  }) => {
+    await page.goto(`/#${kind}`);
+    const form = page.locator(`#${kind} form`);
+    await expect(form.locator("[aria-invalid=true]")).toHaveCount(0);
+    await expect(form.locator(".lead-handoff")).toHaveCount(0);
+    await form.locator("button[type=submit]").click();
+    await expect(form.locator("[name=company]")).toBeFocused();
+    await form.locator("[name=company]").fill("采购 王 SARL");
+    await expect(form.locator("[name=company]")).toHaveAttribute(
+      "aria-invalid",
+      "false",
+    );
+    await expect(form.locator("[name=email]")).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
+    await form.locator("[name=contactPerson]").fill("Lin");
+    await expect(form.locator("[name=company]")).toHaveValue("采购 王 SARL");
+    await form.locator("[name=email]").fill("invalid");
+    await expect(form.locator(`#${kind}-email-error`)).toContainText("邮箱");
+    await form.locator("[name=email]").fill("buyer@example.com");
+    await expect(form.locator(`#${kind}-email-error`)).toHaveCount(0);
+    await expect(form.locator(`#${kind}-wechat-error`)).toHaveCount(0);
+  });
+  test(`${kind} shows conditional contact errors on the field and corrects them without losing values`, async ({
+    page,
+  }) => {
+    await page.goto(`/#${kind}`);
+    const form = await fill(page, kind, false);
+    await form.locator("[name=contactMethod]").selectOption("email");
+    await form.locator("button[type=submit]").click();
+    await expect(form.locator("[name=email]")).toBeFocused();
+    await expect(form.locator("[name=email]")).toHaveAttribute(
+      "aria-required",
+      "true",
+    );
+    await form.locator("[name=contactMethod]").selectOption("wechat");
+    await expect(form.locator("[name=email]")).toHaveAttribute(
+      "aria-invalid",
+      "false",
+    );
+    await expect(form.locator("[name=wechat]")).toHaveValue("buyer-wechat");
+  });
+}
+
+test("fallback waits for a valid submit, keeps preview collapsed and copies current localized data", async ({
+  page,
+  context,
+}) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.route("**/config/emailjs.json", (route) =>
+    route.fulfill({ json: { ...config, enabled: false } }),
+  );
+  await page.goto("/#quote");
+  const form = page.locator("#quote form");
+  await expect(form.getByRole("link", { name: /WhatsApp/ })).toHaveCount(0);
+  await form.locator("button[type=submit]").click();
+  await expect(form.getByRole("link", { name: /WhatsApp/ })).toHaveCount(0);
+  await fill(page, "quote");
+  await form.locator("button[type=submit]").click();
+  await expect(form.locator(".lead-message-preview")).not.toBeVisible();
+  await form.locator("summary").click();
+  await expect(form.locator(".lead-message-preview")).toContainText(
+    "中国采购商 Buyer",
+  );
+  await form.getByRole("button", { name: "复制信息供微信发送" }).click();
+  await expect(form.getByRole("button", { name: "已复制" })).toBeVisible();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toContain(
+    "申请总容量（升）: 7500.00",
+  );
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+    await form.locator(".lead-message-preview").textContent(),
+  );
+  await page
+    .getByRole("group", { name: "语言 / Language" })
+    .getByRole("button", { name: "English" })
+    .click();
+  await expect(form.locator(".lead-message-preview")).toContainText(
+    "Total requested litres: 7500.00",
+  );
+  await expect(
+    form.getByRole("button", { name: "Copy for WeChat" }),
+  ).toBeVisible();
+  await form.locator("[name=quantity-250ml]").fill("40000");
+  await expect(form.getByRole("link", { name: /WhatsApp/ })).toHaveCount(0);
+});
+
+test("touched fields validate on blur without jumping during typing", async ({
+  page,
+}) => {
+  await page.goto("/#visit");
+  const form = page.locator("#visit form");
+  const email = form.locator("[name=email]");
+  await email.fill("wrong");
+  await expect(email).toHaveAttribute("aria-invalid", "false");
+  await email.press("Tab");
+  await expect(email).toHaveAttribute("aria-invalid", "true");
+  await expect(form.locator("[name=company]")).toHaveAttribute(
+    "aria-invalid",
+    "false",
+  );
+  await email.fill("buyer@example.com");
+  await expect(email).toBeFocused();
+  await expect(email).toHaveAttribute("aria-invalid", "false");
+});
+
+test("product selection, quantities, uncertain port and MOQ advisory retain exact entered counts", async ({
+  page,
+}) => {
+  await page.route("**/config/emailjs.json", (route) =>
+    route.fulfill({ json: { ...config, enabled: false } }),
+  );
+  await page.goto("/#quote");
+  const form = await fill(page, "quote");
+  await form.locator("[name=select-250ml]").uncheck();
+  await form.locator("button[type=submit]").click();
+  await expect(form.locator("[name=select-250ml]")).toBeFocused();
+  await expect(form.locator("#quote-products-error")).toContainText(
+    "请至少选择一种产品",
+  );
+  await form.locator("[name=select-250ml]").check();
+  await expect(form.locator(".form-total")).toContainText("7,500");
+  await form.locator("[name=quantity-250ml]").fill("0");
+  await form.locator("button[type=submit]").click();
+  await expect(form.locator("#quote-products-error")).toContainText("大于零");
+  for (const [id, value] of [
+    ["250ml", "1"],
+    ["500ml", "2"],
+    ["750ml", "3"],
+    ["5l", "4"],
+  ]) {
+    await form.locator(`[name=select-${id}]`).check();
+    await form.locator(`[name=quantity-${id}]`).fill(value);
+  }
+  await form.locator("[name=destinationUnknown]").check();
+  await form.locator("button[type=submit]").click();
+  await expect(form.locator(".form-total")).toContainText("23.5");
+  await expect(form.locator(".form-dispatch-note")).toContainText(
+    "商业订购政策",
+  );
+  await expect(form.locator(".form-dispatch-note")).not.toContainText("7,500");
+  await form.locator("summary").click();
+  await expect(form.locator(".lead-message-preview")).toContainText(
+    "申请总容量（升）: 23.50",
+  );
+  await expect(form.locator(".lead-message-preview")).toContainText(
+    "目的港: 尚未确定",
+  );
+  const url = new URL(
+    (await form.getByRole("link", { name: /WhatsApp/ }).getAttribute("href")) ??
+      "",
+  );
+  expect(url.searchParams.get("text")).toContain("5 L: 4");
+  await expect(form.locator("[name=quantity-250ml]")).toHaveValue("1");
+});
+
+test("clipboard rejection never reports copied and offers manual preview", async ({
+  page,
+}) => {
+  await page.addInitScript(() =>
+    Object.defineProperty(navigator, "clipboard", {
+      value: {
+        writeText: async () => {
+          throw new Error("denied");
+        },
+      },
+    }),
+  );
+  await page.route("**/config/emailjs.json", (route) =>
+    route.fulfill({ json: { ...config, enabled: false } }),
+  );
+  await page.goto("/#visit");
+  const form = await fill(page, "visit", false);
+  await form.locator("button[type=submit]").click();
+  await form.getByRole("button", { name: "复制信息供微信发送" }).click();
+  await expect(form.locator(".copy-status")).toContainText("无法复制");
+  await expect(
+    form.getByRole("button", { name: "已复制", exact: true }),
+  ).toHaveCount(0);
+  await form.locator("summary").click();
+  await expect(form.locator(".lead-message-preview")).toBeVisible();
+});
+
+for (const width of [320, 375, 390, 430, 768, 1024, 1440]) {
+  test(`forms fit at ${width}px with visible focused errors and associated labels`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/#quote");
+    for (const kind of ["quote", "visit"]) {
+      const form = page.locator(`#${kind} form`);
+      await form.locator("button[type=submit]").click();
+      await expect(form.locator("[name=company]")).toBeFocused();
+      const position = await form.locator("[name=company]").evaluate((el) => ({
+        top: (el.closest(".form-field") ?? el).getBoundingClientRect().top,
+        bottom: el.getBoundingClientRect().bottom,
+        headerBottom:
+          document.querySelector(".site-header")?.getBoundingClientRect()
+            .bottom ?? 0,
+      }));
+      expect(position.top).toBeGreaterThan(position.headerBottom);
+      expect(position.bottom).toBeLessThan(900);
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+      expect(
+        await form.evaluate((el) =>
+          Array.from(
+            el.querySelectorAll<
+              HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+            >("input:not([name=website]),select,textarea"),
+          ).every(
+            (field) =>
+              field.labels?.length &&
+              (field.getAttribute("aria-invalid") !== "true" ||
+                !!document.getElementById(
+                  field.getAttribute("aria-describedby") ?? "",
+                )),
+          ),
+        ),
+      ).toBe(true);
+      expect(
+        await form.evaluate((el) => el.scrollWidth <= el.clientWidth),
+      ).toBe(true);
+    }
+    await page
+      .getByRole("group", { name: "语言 / Language" })
+      .getByRole("button", { name: "English" })
+      .click();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    await expect(page.locator("#quote-company-error")).toContainText(
+      "Please complete this field",
+    );
+  });
+}
+
+test("a previously corrected touched email keeps validating on later edits", async ({
+  page,
+}) => {
+  await page.goto("/#visit");
+  const email = page.locator("#visit [name=email]");
+  await email.fill("wrong");
+  await email.press("Tab");
+  await expect(email).toHaveAttribute("aria-invalid", "true");
+  await email.fill("buyer@example.com");
+  await expect(email).toHaveAttribute("aria-invalid", "false");
+  await email.fill("wrong-again");
+  await expect(email).toHaveAttribute("aria-invalid", "true");
+  await expect(email).toBeFocused();
+});
+
+test("product-group errors appear when a visitor leaves an interacted empty or zero-total selection", async ({
+  page,
+}) => {
+  await page.goto("/#quote");
+  const form = page.locator("#quote form");
+  const select = form.locator("[name=select-250ml]");
+  await select.check();
+  await select.uncheck();
+  await select.press("Tab");
+  await expect(form.locator("#quote-products-error")).toContainText(
+    "请至少选择一种产品",
+  );
+  await select.check();
+  const quantity = form.locator("[name=quantity-250ml]");
+  await quantity.fill("0");
+  await quantity.press("Tab");
+  await expect(form.locator("#quote-products-error")).toContainText("大于零");
+  await quantity.fill("1");
+  await expect(form.locator("#quote-products-error")).toHaveCount(0);
+});
