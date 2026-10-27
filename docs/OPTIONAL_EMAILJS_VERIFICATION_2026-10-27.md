@@ -1,3 +1,5 @@
+> Historical record of a superseded implementation. Current EmailJS configuration is bundled from TypeScript; follow [current configuration](EMAILJS_CONFIGURATION.md) and rebuild after identifier changes.
+
 # Optional EmailJS / static export verification — 2026-10-27
 
 Baseline commit: `a9510c0`. Environment: Node.js 22.22.3, npm 10.9.8, installed Next.js 16.4.3. Existing checkout was clean on `main` before work.

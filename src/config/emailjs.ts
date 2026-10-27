@@ -1,27 +1,22 @@
-import {
-  DISABLED_EMAILJS_CONFIG,
-  validateEmailJSConfig,
-  type EmailJSConfig,
-} from "./emailjs-schema";
+import { EMAILJS_CONFIG } from "./env";
 
-let pending: Promise<EmailJSConfig> | undefined;
+function validIdentifier(value: unknown): value is string {
+  return (
+    typeof value === "string" &&
+    value.length <= 200 &&
+    /^[A-Za-z0-9_-]+$/.test(value) &&
+    !/your[_-]|placeholder|replace[_-]?me|change[_-]?me|example|^todo$|^undefined$|^null$/i.test(value)
+  );
+}
 
-/** Fetch again on each submission so JSON-only deployments take effect in open pages. */
-export function loadEmailJSConfig(): Promise<EmailJSConfig> {
-  if (!pending) {
-    pending = (async () => {
-      const response = await fetch("/config/emailjs.json", {
-        cache: "no-store",
-        signal: AbortSignal.timeout(10_000),
-      });
-      if (!response.ok) throw new Error("Email configuration unavailable");
-      const value: unknown = await response.json();
-      if (!validateEmailJSConfig(value))
-        throw new Error("Email configuration invalid");
-      return value;
-    })()
-      .catch(() => ({ ...DISABLED_EMAILJS_CONFIG }))
-      .finally(() => { pending = undefined; });
-  }
-  return pending;
+/** Incomplete or placeholder settings disable only automatic email submission. */
+export function isEmailJSConfigured(value: unknown = EMAILJS_CONFIG): boolean {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const config = value as Record<string, unknown>;
+  const keys = ["publicKey", "serviceId", "quoteTemplateId", "visitTemplateId"];
+  return (
+    Object.keys(config).length === keys.length &&
+    keys.every((key) => validIdentifier(config[key])) &&
+    config.quoteTemplateId !== config.visitTemplateId
+  );
 }

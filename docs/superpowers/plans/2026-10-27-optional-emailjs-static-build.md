@@ -1,3 +1,5 @@
+> Historical record of a superseded implementation. Current EmailJS configuration is bundled from TypeScript; follow [current configuration](../../EMAILJS_CONFIGURATION.md) and rebuild after identifier changes.
+
 # Optional EmailJS and portable static deployment
 
 Implement the user's supplied deployment specification in the existing checkout. Preserve the design, commerce data, templates and unrelated files.

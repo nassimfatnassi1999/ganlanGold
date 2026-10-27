@@ -1,5 +1,6 @@
 import emailjs from "@emailjs/browser";
-import { loadEmailJSConfig } from "@/config/emailjs";
+import { EMAILJS_CONFIG } from "@/config/env";
+import { isEmailJSConfigured } from "@/config/emailjs";
 import {
   QUOTE_EMAIL_KEYS,
   VISIT_EMAIL_KEYS,
@@ -37,14 +38,13 @@ export async function sendLead(
   let releaseOnExit = true;
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
-    const config = await loadEmailJSConfig();
-    if (!config.enabled) throw new LeadSendError("disabled");
+    if (!isEmailJSConfigured()) throw new LeadSendError("disabled");
     nextAllowed = Date.now() + SUBMISSION_COOLDOWN_MS;
     const request = emailjs.send(
-      config.serviceId,
-      kind === "quote" ? config.quoteTemplateId : config.visitTemplateId,
+      EMAILJS_CONFIG.serviceId,
+      kind === "quote" ? EMAILJS_CONFIG.quoteTemplateId : EMAILJS_CONFIG.visitTemplateId,
       params,
-      { publicKey: config.publicKey },
+      { publicKey: EMAILJS_CONFIG.publicKey },
     );
     try {
       const response = await Promise.race([

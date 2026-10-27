@@ -24,6 +24,6 @@ backups/*.sql*
 .vscode/
 
 
-# Public runtime configuration is tracked; it contains no private credentials.
+# Keep environment files local; public site settings live in source/public.
 .env.*
 !.env.example

@@ -75,7 +75,10 @@ test("English selection controls navigation, sections, footer, and legal pages",
   await expect(page.getByText("Information we collect", { exact: true })).toBeVisible();
 });
 
-test("static host metadata comments preserve hydration and saved language", async ({ page }) => {
+test("static host metadata comments preserve hydration and saved language", async ({ page, context }) => {
+  // Intercepted HTML loses its network address space in Chromium. Allow the
+  // local dev HMR connection so this host-injection test can hydrate in dev too.
+  await context.grantPermissions(["local-network-access"]);
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.addInitScript(() => localStorage.setItem("ganlan-language", "en"));

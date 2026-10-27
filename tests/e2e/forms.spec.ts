@@ -1,18 +1,42 @@
 import { expect, test, type Page } from "@playwright/test";
+import { EMAILJS_CONFIG } from "../../src/config/env";
 const config = {
-  enabled: true,
   publicKey: "browser-fixture-public",
   serviceId: "browser-fixture-service",
   quoteTemplateId: "browser-fixture-quote",
   visitTemplateId: "browser-fixture-visit",
 };
 const endpoint = "https://api.emailjs.com/api/v1.0/email/send";
+// Replace public constants only in served test JavaScript; production has no test hooks.
+async function useBundledConfig(page: Page, values = config) {
+  await page.route(/\/_next\/static\/.*\.js(?:\?.*)?$/, async (route) => {
+    const response = await route.fetch();
+    let body = await response.text();
+    for (const key of Object.keys(values) as (keyof typeof config)[]) {
+      if (EMAILJS_CONFIG[key])
+        body = body.replaceAll(JSON.stringify(EMAILJS_CONFIG[key]), JSON.stringify(values[key]));
+    }
+    await route.fulfill({ response, body });
+  });
+}
+async function usePlaceholderConfig(page: Page) {
+  await useBundledConfig(page, { ...config, publicKey: "YOUR_PUBLIC_KEY" });
+}
+const configRequests = new WeakMap<Page, string[]>();
 test.beforeEach(async ({ page }) => {
-  // Every provider call is intercepted, even if a future test forgets to set a response.
+  // Every provider call is intercepted, even if a test forgets to set a response.
   await page.route("https://api.emailjs.com/**", (route) => route.abort());
-  await page.route("**/config/emailjs.json", (route) =>
-    route.fulfill({ json: config }),
-  );
+  await useBundledConfig(page);
+  const requests: string[] = [];
+  configRequests.set(page, requests);
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname === "/config/emailjs.json")
+      requests.push(request.url());
+  });
+  await page.route("**/config/emailjs.json", (route) => route.abort());
+});
+test.afterEach(async ({ page }) => {
+  expect(configRequests.get(page)).toEqual([]);
 });
 async function fill(page: Page, kind: "quote" | "visit", email = true) {
   const form = page.locator(`#${kind} form`);
@@ -98,6 +122,7 @@ for (const language of ["zh-CN", "en"])
         kind === "quote" ? config.quoteTemplateId : config.visitTemplateId,
       );
       expect(body.service_id).toBe(config.serviceId);
+      expect(body.user_id).toBe(config.publicKey);
       const params = body.template_params as Record<string, string>;
       expect(params.site_language).toContain(language);
       expect(params).not.toHaveProperty("to_email");
@@ -164,9 +189,7 @@ test("sending disables submit, rejects rapid duplicates, failure keeps values an
 test("missing configuration never sends and keeps entered values; manual handoff still works", async ({
   page,
 }) => {
-  await page.route("**/config/emailjs.json", (route) =>
-    route.fulfill({ body: "{malformed", contentType: "application/json" }),
-  );
+  await usePlaceholderConfig(page);
   let calls = 0;
   page.on("request", (request) => {
     if (request.url() === endpoint) calls++;
@@ -219,9 +242,7 @@ test("honeypot, invalid preference, selected invalid quantity and missing consen
 test("editing a prepared inquiry removes stale WhatsApp and copied data", async ({
   page,
 }) => {
-  await page.route("**/config/emailjs.json", (route) =>
-    route.fulfill({ json: { ...config, enabled: false } }),
-  );
+  await usePlaceholderConfig(page);
   await page.goto("/#quote");
   const form = await fill(page, "quote");
   await form.locator("button[type=submit]").click();
@@ -276,9 +297,7 @@ for (const language of ["zh-CN", "en"])
     test(`${kind} disabled in ${language} preserves input and provides manual contact without sending`, async ({
       page,
     }) => {
-      await page.route("**/config/emailjs.json", (route) =>
-        route.fulfill({ json: { ...config, enabled: false } }),
-      );
+      await usePlaceholderConfig(page);
       let calls = 0;
       page.on("request", (request) => {
         if (request.url() === endpoint) calls++;
@@ -315,68 +334,32 @@ for (const language of ["zh-CN", "en"])
     });
   }
 
-test("a runtime JSON edit activates sending on a later submission without reload or rebuild", async ({
-  page,
-}) => {
-  let enabled = false;
-  await page.route("**/config/emailjs.json", (route) =>
-    route.fulfill({ json: { ...config, enabled } }),
-  );
-  let calls = 0;
-  await page.route(endpoint, async (route) => {
-    calls++;
-    await route.fulfill({ status: 200, body: "OK" });
-  });
-  await page.goto("/#quote");
-  const form = await fill(page, "quote");
-  await form.locator("button[type=submit]").click();
-  await expect(form.getByRole("alert")).toContainText("自动邮件提交暂不可用");
-  expect(calls).toBe(0);
-  enabled = true;
-  await form.locator("button[type=submit]").click();
-  await expect(form.getByRole("status").first()).toContainText(
-    "您的申请已成功发送",
-  );
-  expect(calls).toBe(1);
-});
-
-for (const failure of [
-  "missing",
-  "network",
-  "incomplete",
-  "nonboolean",
-] as const) {
-  test(`runtime config ${failure} safely disables sending`, async ({
-    page,
-  }) => {
-    const errors: string[] = [];
-    page.on("pageerror", (error) => errors.push(error.message));
-    await page.route("**/config/emailjs.json", (route) => {
-      if (failure === "missing")
-        return route.fulfill({ status: 404, body: "Not found" });
-      if (failure === "network") return route.abort();
-      return route.fulfill({
-        json:
-          failure === "incomplete"
-            ? { ...config, serviceId: "" }
-            : { ...config, enabled: "true" },
+for (const language of ["zh-CN", "en"])
+  for (const kind of ["quote", "visit"] as const)
+    for (const status of [403, 500]) {
+      test(`${kind} provider ${status} in ${language} keeps values and stops sending`, async ({ page }) => {
+        let calls = 0;
+        await page.route(endpoint, (route) => {
+          calls++;
+          return route.fulfill({ status, body: "Rejected" });
+        });
+        await page.goto(`/#${kind}`);
+        if (language === "en")
+          await page.getByRole("group", { name: "语言 / Language" })
+            .getByRole("button", { name: "English" }).click();
+        const form = await fill(page, kind);
+        await form.locator("button[type=submit]").click();
+        await expect(form.getByRole("alert")).toContainText(
+          status === 403
+            ? language === "en" ? "Automatic email submission is not currently available" : "自动邮件提交暂不可用"
+            : language === "en" ? "Unable to send" : "发送失败",
+        );
+        await expect(form.locator("button[type=submit]")).toBeEnabled();
+        await expect(form.locator("[name=company]")).toHaveValue("中国采购商 Buyer");
+        await expect(form.getByRole("link", { name: /WhatsApp/ })).toBeVisible();
+        expect(calls).toBe(1);
       });
-    });
-    let calls = 0;
-    page.on("request", (request) => {
-      if (request.url() === endpoint) calls++;
-    });
-    await page.goto("/#quote");
-    const form = await fill(page, "quote");
-    await form.locator("button[type=submit]").click();
-    await expect(form.getByRole("alert")).toContainText("自动邮件提交暂不可用");
-    await expect(form.locator("[name=company]")).toHaveValue(
-      "中国采购商 Buyer",
-    );
-    expect(calls).toBe(0);
-    expect(errors).toEqual([]);
-  });
-}
+    }
 
 for (const kind of ["quote", "visit"] as const) {
   test(`${kind} guides first error and retains other errors while correcting touched fields`, async ({
@@ -431,9 +414,7 @@ test("fallback waits for a valid submit, keeps preview collapsed and copies curr
   context,
 }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.route("**/config/emailjs.json", (route) =>
-    route.fulfill({ json: { ...config, enabled: false } }),
-  );
+  await usePlaceholderConfig(page);
   await page.goto("/#quote");
   const form = page.locator("#quote form");
   await expect(form.getByRole("link", { name: /WhatsApp/ })).toHaveCount(0);
@@ -490,9 +471,7 @@ test("touched fields validate on blur without jumping during typing", async ({
 test("product selection, quantities, uncertain port and MOQ advisory retain exact entered counts", async ({
   page,
 }) => {
-  await page.route("**/config/emailjs.json", (route) =>
-    route.fulfill({ json: { ...config, enabled: false } }),
-  );
+  await usePlaceholderConfig(page);
   await page.goto("/#quote");
   const form = await fill(page, "quote");
   await form.locator("[name=select-250ml]").uncheck();
@@ -549,9 +528,7 @@ test("clipboard rejection never reports copied and offers manual preview", async
       },
     }),
   );
-  await page.route("**/config/emailjs.json", (route) =>
-    route.fulfill({ json: { ...config, enabled: false } }),
-  );
+  await usePlaceholderConfig(page);
   await page.goto("/#visit");
   const form = await fill(page, "visit", false);
   await form.locator("button[type=submit]").click();

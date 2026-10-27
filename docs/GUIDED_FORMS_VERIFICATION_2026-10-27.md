@@ -1,3 +1,5 @@
+> Historical record of a superseded implementation. Current EmailJS configuration is bundled from TypeScript; follow [current configuration](EMAILJS_CONFIGURATION.md) and rebuild after identifier changes.
+
 # Guided bilingual forms — verification
 
 Date: 2026-10-27

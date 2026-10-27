@@ -1,5 +1,6 @@
-import { validateEmailJSConfig } from "../src/config/emailjs-schema.ts";
-/** Static export verification; shares the runtime EmailJS contract via tsx. */
+import { EMAILJS_CONFIG } from "../src/config/env.ts";
+import { isEmailJSConfigured } from "../src/config/emailjs.ts";
+/** Verify the standalone static export and its bundled public EmailJS settings. */
 import { readFile, access, readdir } from "node:fs/promises";
 const dir = new URL("../dist/", import.meta.url);
 const html = await readFile(new URL("index.html", dir), "utf8");
@@ -70,14 +71,26 @@ check(
   "All 3 verified contacts present",
 );
 
-const emailjs = JSON.parse(
-  await readFile(new URL("config/emailjs.json", dir), "utf8"),
+const files = await readdir(dir, { recursive: true });
+check(!files.includes("config/emailjs.json"), "No EmailJS runtime JSON in static export");
+const clientScripts = await Promise.all(
+  files.filter((file) => file.startsWith("_next/static/") && file.endsWith(".js"))
+    .map((file) => readFile(new URL(file, dir), "utf8")),
+);
+const clientJavaScript = clientScripts.join("\n");
+check(
+  !clientJavaScript.includes("/config/emailjs.json") &&
+    !clientJavaScript.includes("NEXT_PUBLIC_EMAILJS_"),
+  "Client JavaScript has no EmailJS runtime configuration or environment dependency",
 );
 check(
-  validateEmailJSConfig(emailjs),
-  "Runtime EmailJS configuration is valid (enabled or safely disabled)",
+  Object.values(EMAILJS_CONFIG).every((value) =>
+    clientJavaScript.includes(JSON.stringify(value))),
+  "All four public EmailJS identifiers are bundled from TypeScript",
 );
-const files = await readdir(dir, { recursive: true });
+console.log(isEmailJSConfigured()
+  ? "EmailJS public identifiers configured; provider delivery requires separate verification."
+  : "EmailJS unavailable; manual contact remains supported.");
 check(
   !files.some((file) =>
     file.split("/").some((part) => part === ".env" || part.startsWith(".env.")),

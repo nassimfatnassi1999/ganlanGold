@@ -1,7 +1,7 @@
-import { test, mock } from "node:test";
+import { test, mock, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import emailjs from "@emailjs/browser";
-import { loadEmailJSConfig } from "../../src/config/emailjs.ts";
+import * as env from "../../src/config/env.ts";
 import {
   sendLead,
   LeadSendError,
@@ -14,7 +14,6 @@ import {
   buildVisitParams,
 } from "../../src/lib/forms/lead.ts";
 const config = {
-  enabled: true,
   publicKey: "unit-public",
   serviceId: "unit-service",
   quoteTemplateId: "unit-quote",
@@ -36,94 +35,32 @@ Object.entries({
 const quote = buildQuoteParams(validateQuote(f).data!, "en");
 const visit = buildVisitParams(validateVisit(f).data!, "en");
 
-const disabled = {
-  enabled: false,
-  publicKey: "",
-  serviceId: "",
-  quoteTemplateId: "",
-  visitTemplateId: "",
-};
-
-test("loader falls back disabled for HTTP, JSON, schema and network failures", async () => {
-  for (const response of [
-    new Response("no", { status: 404 }),
-    new Response("{"),
-    Response.json({}),
-    Response.json({ ...config, enabled: "true" }),
-    Response.json({ ...config, publicKey: "" }),
-    Response.json({ ...config, publicKey: "YOUR_PUBLIC_KEY" }),
-    Response.json({ ...config, quoteTemplateId: config.visitTemplateId }),
-    Response.json({ ...config, privateKey: "should-not-be-here" }),
-  ]) {
-    const fetch = mock.method(globalThis, "fetch", async () => response);
-    try {
-      assert.deepEqual(await loadEmailJSConfig(), disabled);
-    } finally {
-      fetch.mock.restore();
-    }
-  }
-  const fetch = mock.method(globalThis, "fetch", async () => {
-    throw new Error("offline");
-  });
-  try {
-    assert.deepEqual(await loadEmailJSConfig(), disabled);
-  } finally {
-    fetch.mock.restore();
-  }
+const originalConfig = "EMAILJS_CONFIG" in env ? { ...env.EMAILJS_CONFIG } : {};
+beforeEach(() => {
+  assert.ok("EMAILJS_CONFIG" in env, "TypeScript configuration must exist");
+  for (const [key, value] of Object.entries(config)) Reflect.set(env.EMAILJS_CONFIG, key, value);
+  mock.method(globalThis, "fetch", async () => { throw new Error("Unexpected configuration fetch"); });
+});
+afterEach(() => {
+  if ("EMAILJS_CONFIG" in env)
+    for (const [key, value] of Object.entries(originalConfig)) Reflect.set(env.EMAILJS_CONFIG, key, value);
+  mock.restoreAll();
 });
 
-test("loader rereads runtime edits and shares only concurrent requests", async () => {
-  let current = disabled;
-  const fetch = mock.method(globalThis, "fetch", async (_url, options) => {
-    assert.equal(options?.cache, "no-store");
-    return Response.json(current);
-  });
-  try {
-    assert.deepEqual(await loadEmailJSConfig(), disabled);
-    current = config;
-    assert.deepEqual(await loadEmailJSConfig(), config);
-    current = { ...config, enabled: false };
-    const results = await Promise.all([
-      loadEmailJSConfig(),
-      loadEmailJSConfig(),
-    ]);
-    assert.deepEqual(results, [current, current]);
-    assert.equal(fetch.mock.callCount(), 3);
-  } finally {
-    fetch.mock.restore();
+test("placeholder configuration never invokes SDK and does not consume cooldown", async () => {
+  const sdk = mock.method(emailjs, "send", async () => ({ status: 200, text: "OK" }));
+  mock.method(Date, "now", () => 1);
+  for (const key of Object.keys(config)) {
+    Reflect.set(env.EMAILJS_CONFIG, key, "YOUR_PUBLIC_KEY");
+    await assert.rejects(sendLead("quote", quote), (error: unknown) =>
+      error instanceof LeadSendError && error.reason === "disabled");
+    Reflect.set(env.EMAILJS_CONFIG, key, config[key as keyof typeof config]);
   }
-});
-
-test("disabled config never invokes SDK and does not consume cooldown", async () => {
-  let current = { ...config, enabled: false };
-  const fetch = mock.method(globalThis, "fetch", async () =>
-    Response.json(current),
-  );
-  const sdk = mock.method(emailjs, "send", async () => ({
-    status: 200,
-    text: "OK",
-  }));
-  const clock = mock.method(Date, "now", () => 1);
-  try {
-    await assert.rejects(
-      sendLead("quote", quote),
-      (error: unknown) =>
-        error instanceof LeadSendError && error.reason === "disabled",
-    );
-    assert.equal(sdk.mock.callCount(), 0);
-    current = config;
-    await sendLead("quote", quote);
-    assert.equal(sdk.mock.callCount(), 1);
-  } finally {
-    fetch.mock.restore();
-    sdk.mock.restore();
-    clock.mock.restore();
-  }
+  assert.equal(sdk.mock.callCount(), 0);
+  await sendLead("quote", quote);
+  assert.equal(sdk.mock.callCount(), 1);
 });
 test("service uses correct templates, prevents concurrent sends and enforces shared cooldown after failure", async () => {
-  const fetch = mock.method(globalThis, "fetch", async () =>
-    Response.json(config),
-  );
   let now = 100000;
   const clock = mock.method(Date, "now", () => now);
   let finish: (value: { status: number; text: string }) => void = () => {};
@@ -170,14 +107,10 @@ test("service uses correct templates, prevents concurrent sends and enforces sha
   } finally {
     sdk.mock.restore();
     clock.mock.restore();
-    fetch.mock.restore();
   }
 });
 
 test("provider configuration rejection offers email-unavailable fallback instead of success", async () => {
-  const fetch = mock.method(globalThis, "fetch", async () =>
-    Response.json(config),
-  );
   let now = 500000;
   const clock = mock.method(Date, "now", () => now);
   const sdk = mock.method(emailjs, "send", async () => {
@@ -196,7 +129,6 @@ test("provider configuration rejection offers email-unavailable fallback instead
       );
     }
   } finally {
-    fetch.mock.restore();
     sdk.mock.restore();
     clock.mock.restore();
   }

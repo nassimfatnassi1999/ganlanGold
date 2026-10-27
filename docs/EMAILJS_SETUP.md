@@ -16,18 +16,29 @@ The two existing forms send through `@emailjs/browser` using `emailjs.send()`, o
 10. Paste all of `emailjs-templates/grove-visit-request.html` into its HTML editor.
 11. Set its subject to `GANLAN GOLD | 橄榄园参观申请 / Grove Visit Request — {{company}}`. Configure its authorized recipient and sender directly in the dashboard, following `emailjs-templates/grove-visit-request-settings.md`. Leave Reply-To blank for the mixed contact workflow. Disable auto-replies/linked confirmation templates: no visitor is promised a scheduled date.
 12. Save and copy the distinct visit **Template ID**.
-13. Enable sending using the five-field runtime JSON described in [EMAILJS_OPTIONAL_CONFIGURATION.md](EMAILJS_OPTIONAL_CONFIGURATION.md). `enabled` must be `true`; both template IDs must be distinct. Use only the public browser key and IDs. The website builds and runs without them.
-14. Configure the EmailJS domain allowlist for the exact authorized origins, including `http://localhost:3000` for local testing and `https://ganlan.netlify.app` for the existing production site. Add the actual OSS custom domain when used. Avoid `*` or invented domains.
-15. Run `npm ci` and `npm run dev`. Missing configuration disables automatic submission while keeping manual contacts and validated prepared messages available.
-16. Run `npm test`, `npm run typecheck`, `npm run lint`, `npm run test:e2e` and `npm run build`. Automated tests mock provider responses and never send real emails. `npm run build` accepts disabled EmailJS in production.
-17. Deploy the contents of `dist/` using [STATIC_DEPLOYMENT.md](STATIC_DEPLOYMENT.md). To enable later, replace `config/emailjs.json` without rebuilding; Netlify requires a complete static deployment snapshot, while OSS allows replacing just that object.
-18. With the recipient's permission, send one real quotation and one visit inquiry on the authorized production origin. Verify the intended inbox, all fields and Chinese text, provider history and spam folders. UI acceptance is not proof of inbox delivery. Automated tests do not establish real delivery or access from mainland China.
+13. Copy the four public identifiers into `EMAILJS_CONFIG` in `src/config/env.ts`, using distinct quote and visit template IDs. See [EMAILJS_CONFIGURATION.md](EMAILJS_CONFIGURATION.md). Never add a private key, SMTP password or provider credentials.
+14. Configure the exact authorized origins in the dashboard's Domains section, following the origin table below.
+15. Run `npm ci` and `npm run dev`. Missing or placeholder identifiers disable automatic submission while retaining validated manual contact.
+16. Run `npm test`, `npm run typecheck`, `npm run lint`, `npm run test:e2e` and `npm run build`. Tests mock the provider and never send real emails. Builds succeed with placeholders.
+17. Deploy all of `dist/` using [STATIC_DEPLOYMENT.md](STATIC_DEPLOYMENT.md). Any identifier change requires a fresh build and deployment.
+18. With the recipient's permission, send one real quotation and one visit request from the authorized production origin. Verify the intended inbox, fields, Chinese text, provider history and spam folder. SDK acceptance does not establish inbox delivery or access from mainland China.
 
-## Runtime contract and optional environment support
+## Authorized origins
 
-See [EMAILJS_OPTIONAL_CONFIGURATION.md](EMAILJS_OPTIONAL_CONFIGURATION.md) for the exact five-field JSON shape, precedence, disabled fallback, cache rules and edit-without-build workflow. This guide's account/template instructions remain applicable; older dated reports refer to earlier implementations.
+EmailJS's [Domains allowlist](https://www.emailjs.com/docs/faq/can-i-add-my-domain-to-allowlist/) uses `scheme://hostname[:port]`. Enter one exact origin per entry, with no path, trailing slash or wildcard. Enable only origins actually used:
 
-The browser fetches JSON on every valid submission, sharing only concurrent loads. HTTP, JSON, schema or network errors safely disable sending. A configuration failure does not consume the 30-second provider cooldown. No environment file is ever uploaded. Do not store private keys or SMTP passwords in public JSON.
+| Origin | When to authorize |
+| --- | --- |
+| `http://localhost:3000` | While testing with the local development server on port 3000 |
+| `https://ganlan.netlify.app` | Existing Netlify production site |
+| `https://ganlangold.com` | Only after this custom domain serves the site |
+| `https://www.ganlangold.com` | Only if this separate origin also serves the site |
+
+A redirect-only origin does not need permission if no form runs there. If a local port changes, authorize the exact used origin while testing, then remove it when no longer needed. Do not add an OSS bucket hostname or unused preview URLs speculatively.
+
+## Bundled public configuration
+
+Both forms call the official [`emailjs.send`](https://www.emailjs.com/docs/sdk/send/) with the shared service ID, their own template ID, existing string parameters and `{ publicKey: EMAILJS_CONFIG.publicKey }`. No configuration fetch occurs. The configuration module reads neither environment variables nor a runtime JSON file. These four values are public; all recipients remain fixed in the dashboard. See [EMAILJS_CONFIGURATION.md](EMAILJS_CONFIGURATION.md) for rebuild and placeholder behavior.
 
 ## Validation, commercial rules and abuse controls
 
