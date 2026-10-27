@@ -55,7 +55,11 @@
     "subtitle": "From Moroccan groves to traceable lots",
     "body": "GANLAN GOLD coordinates Fouad’s agricultural operation with selected neighboring olive growers through defined sourcing, lot traceability and quality-control preparation, grounded in Morocco’s olive-growing heritage.",
     "note": "The origin of each lot remains subject to its commercial documentation and final confirmation.",
-    "steps": ["Sourcing", "Traceability", "Quality control"]
+    "steps": [
+      "Sourcing",
+      "Traceability",
+      "Quality control"
+    ]
   },
   "visit": {
     "eyebrow": "Professional visits",
@@ -120,7 +124,11 @@
     "submit": "Prepare inquiry",
     "success": "Send through WhatsApp or copy the message for WeChat. Nothing has been sent automatically.",
     "belowPolicy": "The requested total is below the commercial order policy; please review the wholesale-order section above.",
-    "benefits": ["Multi-format selection", "Final confirmation in USD", "Personal follow-up"]
+    "benefits": [
+      "Multi-format selection",
+      "Final confirmation in USD",
+      "Personal follow-up"
+    ]
   },
   "forms": {
     "required": "Required",
@@ -150,7 +158,6 @@
     "privacy": "Privacy Policy",
     "legal": "Legal Notice",
     "terms": "Commercial Information",
-    "admin": "Administration",
     "notice": "Product imagery, Chinese copy, labels and commercial conditions require the relevant approvals before public launch."
   }
 }

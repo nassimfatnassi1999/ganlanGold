@@ -1,6 +1,6 @@
 # GANLAN GOLD — Site vitrine B2B (édition statique Gandi)
 
-**Projet corrigé le 25 octobre 2026**, à partir du projet livré et du cahier des charges `GANLAN_GOLD_Website_Developer_Specification_EN_V7.pdf`.
+**Projet mis à jour le 27 octobre 2026**, à partir du projet livré et du cahier des charges `GANLAN_GOLD_Website_Developer_Specification_EN_V7.pdf`.
 
 Site premium destiné aux importateurs professionnels d'huile d'olive marocaine, avec **chinois simplifié par défaut et interface anglaise complète sélectionnable**. Le choix `中文 | EN` est mémorisé localement dans le navigateur. Le site est **statique**, sans base de données, Prisma, PostgreSQL, back-office, API applicative ni conversion de devises en temps réel.
 
@@ -13,7 +13,7 @@ Deux versions se trouvent dans cette archive :
 
 Le panorama d'accueil utilise **la dernière image GANLAN GOLD sans titre à gauche**, avec quatre conditionnements, montagnes et oliveraies ; les titres chinois/anglais et boutons sont de vrais éléments HTML, non intégrés dans l'image.
 
-Toutes les images publiées sont centralisées dans `public/images/`. Les visuels produits et les QR codes issus de la spécification y sont conservés dans leurs formats web utiles ; les originaux de travail et leurs doublons ne font pas partie du projet nettoyé.
+Toutes les images publiées sont centralisées dans `public/images/`. Les versions produit dérivées des images officielles du PDF sont disponibles en WebP/AVIF ; les fichiers WebP qui ont servi de base sont conservés dans `docs/image-sources/`. Les QR codes officiels restent en PNG, sans modification.
 
 ## 2. Modifier les quatre prix après déploiement — sans build
 
@@ -125,12 +125,14 @@ Les valeurs initiales sont livrées dans `dist/config/prices.json` et peuvent ê
 Le site ne charge aucune image depuis la racine du dépôt : toutes les ressources visuelles d’exécution se trouvent sous `public/images/`.
 
 - `public/images/hero/` : panorama sans texte fixe, formats WebP/AVIF, déclinaison desktop/mobile.
-- `public/images/products/` : quatre visuels de produits séparés en WebP.
+- `public/images/products/` : quatre photos de produit avec retouche non destructive de netteté et agrandissement Lanczos (environ 1,8× en pixels), versions WebP et AVIF. Les étiquettes ne sont pas redessinées ; les sources précédentes sont sauvegardées dans `docs/image-sources/`.
 - `public/images/qr/` : QR officiels WeChat en PNG non redessinés.
 - `public/images/groves/` : visuel vertical net des oliveraies marocaines pour la section Origine. Le nouveau fichier `moroccan-groves-sharp.webp` est un recadrage exact, non agrandi, du panorama approuvé, sans emballage ni texte, compressé à 177 Ko.
 - `public/images/brand/` : motif SVG décoratif utilisé par l’interface.
 
-Les photos produits extraites du PDF restent limitées par la résolution d'origine. Une version HD validée doit les remplacer avant campagne commerciale de grande taille, si disponible.
+Les photos produits extraites du PDF restent limitées par la résolution d'origine, **362×439 à 420×439 px**. Leur agrandissement améliore le confort d'affichage mais **ne restaure pas de véritables détails haute définition** ; des photos originales HD doivent les remplacer pour une publicité ou une impression grand format.
+
+**Nouvelle animation olive → huile :** `public/interactive/olive-journey.js` et `.css` (copiés sous `dist/interactive/`). Cette illustration SVG autonome et légère montre des branches d'olivier, une bouteille stylisée qui s'incline et un filet d'huile pendant le défilement. Elle est désactivée pour les utilisateurs ayant activé « Réduire les animations ». Elle n'est ni une nouvelle affirmation commerciale ni une photographie de produit.
 
 ## 8. Avant mise en ligne commerciale : validations restantes
 
@@ -144,23 +146,28 @@ Les photos produits extraites du PDF restent limitées par la résolution d'orig
 - Configuration domaine, certificat HTTPS, sitemap et performances constatées sur réseau chinois testés.
 - Test réel des deux parcours de contact sur desktop et mobile.
 
-## 9. Tests effectués dans l'environnement de préparation
+## 9. Tests, conformité et limites de vérification (27 octobre 2026)
 
-Vérifications réussies le 26 octobre 2026 :
+Rapport détaillé : `docs/V7_COMPLIANCE_AUDIT.md`.
+
+**Vérifications effectuées sur cette révision :** `node scripts/check-dist.mjs` (réussi), `node --check public/interactive/olive-journey.js` (réussi), comparaison de la structure statique (quatre produits, une section MOQ, liens internes, contacts, prix et fichiers d'images), empreintes SHA-256 des deux QR codes officiels, inspection des images dérivées et prévisualisation du SVG.
+
+**Limitation vérifiable :** l'environnement de reconstruction n'avait pas accès aux dépendances complètes nécessaires au nouveau build Next.js ; une tentative `npm ci` a échoué à cause d'un paquet non présent dans le cache puis d'un accès réseau expiré. La sortie `dist/` est donc celle **déjà compilée et fournie par le client**, mise à jour directement avec les nouvelles images optimisées, feuilles CSS, scripts et liens. Le nouveau code source est inclus pour les prochaines reconstructions sur ton Mac, mais **je ne prétends pas avoir effectué un nouveau `npm run build` ou des tests Playwright complets** sur cette révision. L'accès Chromium aux pages locales a également été bloqué par l'environnement d'exécution.
+
+Avant la mise en production, sur ton Mac, exécute :
 
 ```bash
+npm ci
 npm run typecheck
 npm run lint
 npm run test:e2e
-npm run build
+NEXT_PUBLIC_SITE_URL=https://ton-vrai-domaine.tld npm run build
+npm run verify:static
 ```
 
-- 30 tests Playwright réussis ; 6 variantes volontairement ignorées quand la matrice desktop couvre déjà les mêmes préférences.
-- Contrôle réel des largeurs `320`, `375`, `390`, `430`, `768`, `1024` et `1440` px, sans débordement horizontal ni image cassée.
-- Contrôle du changement de langue, de sa persistance, des formulaires, des pages légales, du clavier et de `prefers-reduced-motion`.
-- Export Next.js statique réussi pour `/`, `/privacy`, `/legal`, `/terms`, `/robots.txt` et `/sitemap.xml`.
-- Validation de `dist/` : configuration runtime de 4 prix valide, aucune valeur monétaire figée dans le HTML, une seule section MOQ, contacts vérifiés et absence d'interface admin/base de données/taux automatique.
-- Test fumée Chromium du site réellement servi depuis `dist/` à 390 px : chinois initial, bascule anglaise et largeur de document conformes.
+Attention : **`npm run build` régénère `dist/`**. Le fichier `src/app/layout.tsx` inclut désormais automatiquement les deux ressources d'animation, et `public/images/` contient les quatre nouveaux fichiers produits : ces améliorations seront conservées au prochain build.
+
+Le déploiement des fichiers `dist/` est prévu sur un hébergement statique Gandi. Les formulaires ne sont **pas** transmis automatiquement ; l'utilisateur les envoie lui-même par WhatsApp ou copie pour WeChat. Il s'agit d'une limite assumée du choix sans backend par rapport à V7.
 
 ## 10. Licence et ressources
 
