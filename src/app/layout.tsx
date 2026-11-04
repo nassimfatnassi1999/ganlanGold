@@ -42,7 +42,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
   return (
     <html lang="zh-CN" data-language="zh-CN" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head />
-      <body>
+      <body suppressHydrationWarning>
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var k="ganlan-language",v=localStorage.getItem(k),l=v==="en"||v==="zh-CN"?v:"zh-CN";document.documentElement.lang=l;document.documentElement.dataset.language=l}catch(e){document.documentElement.lang="zh-CN";document.documentElement.dataset.language="zh-CN"}})()`,

@@ -82,18 +82,18 @@ Référence : [hébergement statique OSS, règles de sous-dossier et domaine per
 
 EmailJS : modifier les quatre identifiants publics dans `src/config/env.ts`, exécuter `npm run build` et redéployer tout `dist/`, selon [EMAILJS_CONFIGURATION.md](EMAILJS_CONFIGURATION.md). Ne jamais modifier directement les fichiers JavaScript hachés.
 
-Prix : modifier `dist/config/prices.json` et téléverser le même chemin. Conserver exactement les quatre références, avec `cny` entier positif et `usd` chaîne décimale à deux chiffres :
+Prix : modifier `dist/config/prices.json` et téléverser le même chemin. Conserver exactement les quatre références, avec `cny` entier positif et `usd` / `eur` chaînes décimales à deux chiffres :
 
 ```json
 {
-  "250ml": { "cny": 29, "usd": "4.00" },
-  "500ml": { "cny": 49, "usd": "7.30" },
-  "750ml": { "cny": 69, "usd": "10.10" },
-  "5l": { "cny": 259, "usd": "38.50" }
+  "250ml": { "cny": 16, "usd": "2.35", "eur": "2.15" },
+  "500ml": { "cny": 30, "usd": "4.40", "eur": "4.02" },
+  "750ml": { "cny": 43, "usd": "6.30", "eur": "5.77" },
+  "5l": { "cny": 220, "usd": "32.30", "eur": "29.50" }
 }
 ```
 
-Les devises restent indépendantes et manuelles. Sur Netlify, republier un instantané complet de `dist/` modifié, sans rebuild ; sur OSS, remplacer seulement l’objet de prix JSON. Synchroniser les prix déployés vers `public/config/prices.json` avant la prochaine reconstruction afin de conserver ces modifications.
+Les équivalents USD et EUR sont convertis automatiquement depuis le CNY (taux BCE via `api.frankfurter.dev`) ; `usd` et `eur` ne servent que de repli si ce service est inaccessible. Tester l’affichage depuis les réseaux réellement utilisés par les acheteurs en Chine. Sur Netlify, republier un instantané complet de `dist/` modifié, sans rebuild ; sur OSS, remplacer seulement l’objet de prix JSON. Synchroniser les prix déployés vers `public/config/prices.json` avant la prochaine reconstruction afin de conserver ces modifications.
 
 ## Tester les fichiers exportés localement
 

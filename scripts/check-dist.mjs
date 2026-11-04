@@ -32,11 +32,12 @@ check(
       const price = prices[id];
       return (
         price &&
-        Object.keys(price).length === 2 &&
+        Object.keys(price).length === 3 &&
         Number.isSafeInteger(price.cny) &&
         price.cny > 0 &&
-        typeof price.usd === "string" &&
-        /^(0|[1-9]\d*)\.\d{2}$/.test(price.usd)
+        ["usd", "eur"].every((currency) =>
+          typeof price[currency] === "string" &&
+          /^(0|[1-9]\d*)\.\d{2}$/.test(price[currency]))
       );
     }),
   "Editable runtime price configuration is valid",
@@ -46,7 +47,9 @@ check(
   "Exactly four runtime price cards",
 );
 check(
-  !html.includes('class="price-cny"') && !html.includes('class="price-usd"'),
+  !html.includes('class="price-cny"') &&
+    !html.includes('class="price-usd"') &&
+    !html.includes('class="price-eur"'),
   "No rendered price amounts compiled into page HTML",
 );
 check(
@@ -63,8 +66,10 @@ check(
   "No admin/database UI",
 );
 check(
-  !html.includes("referenceDate") && !html.includes("参考汇率日期"),
-  "No automatic FX rate output",
+  html.includes('class="pricing-terms"') &&
+    html.includes("批发参考价格 · 根据订购数量可议价") &&
+    html.includes("Indicative wholesale export prices from Morocco"),
+  "Bilingual wholesale pricing terms present",
 );
 check(
   html.includes("Gisèle") && html.includes("Lassad") && html.includes("Fouad"),

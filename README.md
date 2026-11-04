@@ -2,7 +2,7 @@
 
 **Projet mis à jour le 27 octobre 2026**, à partir du projet livré et du cahier des charges `GANLAN_GOLD_Website_Developer_Specification_EN_V7.pdf`.
 
-Site premium destiné aux importateurs professionnels d'huile d'olive marocaine, avec **chinois simplifié par défaut et interface anglaise complète sélectionnable**. Le choix `中文 | EN` est mémorisé localement dans le navigateur. Le site est **statique**, sans base de données, Prisma, PostgreSQL, back-office, API applicative ni conversion de devises en temps réel.
+Site premium destiné aux importateurs professionnels d'huile d'olive marocaine, avec **chinois simplifié par défaut et interface anglaise complète sélectionnable**. Le choix `中文 | EN` est mémorisé localement dans le navigateur. Le site est **statique**, sans base de données, Prisma, PostgreSQL, back-office ni API applicative. Les équivalents USD et EUR sont calculés dans le navigateur à partir des taux de référence de la BCE (voir section 2).
 
 ## 1. Livraison
 
@@ -21,10 +21,10 @@ Toutes les images publiées sont centralisées dans `public/images/`. Les versio
 
 ```json
 {
-  "250ml": { "cny": 29, "usd": "4.00" },
-  "500ml": { "cny": 49, "usd": "7.30" },
-  "750ml": { "cny": 69, "usd": "10.10" },
-  "5l": { "cny": 259, "usd": "38.50" }
+  "250ml": { "cny": 16, "usd": "2.35", "eur": "2.15" },
+  "500ml": { "cny": 30, "usd": "4.40", "eur": "4.02" },
+  "750ml": { "cny": 43, "usd": "6.30", "eur": "5.77" },
+  "5l": { "cny": 220, "usd": "32.30", "eur": "29.50" }
 }
 ```
 
@@ -36,9 +36,15 @@ Pour changer les tarifs après la mise en ligne :
 
 Il ne faut **ni relancer `npm run build`, ni retransférer tout `dist/`** pour une simple modification de prix.
 
-Règles à respecter : conserver exactement les quatre références ; saisir `cny` comme entier positif ; conserver `usd` entre guillemets avec deux décimales. Si le fichier est absent ou invalide, le site affiche « prix temporairement indisponible » au lieu d’un ancien montant.
+Règles à respecter : conserver exactement les quatre références ; saisir `cny` comme entier positif ; conserver `usd` et `eur` entre guillemets avec deux décimales. Si le fichier est absent ou invalide, le site affiche « prix temporairement indisponible » au lieu d’un ancien montant.
 
-Les montants CNY et USD sont indépendants et aucune conversion n'est faite. Les prix restent indicatifs ; le devis final est confirmé en USD, habituellement pour 15 jours sauf indication contraire.
+**Le prix CNY est le prix principal** (prix de gros indicatifs export depuis le Maroc, négociables selon le volume). Sous chaque prix, le site affiche les équivalents USD et EUR :
+
+1. **Conversion automatique** : le navigateur récupère les taux de référence quotidiens de la BCE (CNY→USD et CNY→EUR) via l’API gratuite Frankfurter (`api.frankfurter.dev`, sans clé) et affiche la date du taux.
+2. **Dernier taux valide** : si le service ne répond pas, le dernier taux reçu par ce navigateur est réutilisé, avec sa date.
+3. **Valeurs manuelles** : sinon (par exemple si le service est inaccessible depuis certains réseaux en Chine continentale), le site affiche les montants `usd` et `eur` de `prices.json`. Il faut donc les tenir à jour approximativement lors de chaque changement de prix CNY.
+
+Le délai d’attente du service est de 6 secondes ; le prix CNY s’affiche toujours sans attendre. Les prix restent indicatifs ; le devis final est confirmé en USD, habituellement pour 15 jours sauf indication contraire. Le texte « 批发参考价格 · 根据订购数量可议价 » (offre en vrac, MOQ, exclusions) se modifie dans `src/i18n/zh-CN.json` et `src/i18n/en.json` (`products.terms`), puis nécessite un build.
 
 Lors d’une future reconstruction complète du code, `public/config/prices.json` est la copie source automatiquement placée dans `dist/config/prices.json`.
 
@@ -108,7 +114,7 @@ Les deux modèles HTML complets, réglages et aperçus sont dans [emailjs-templa
 | Animations éditoriales au défilement | Oui ; désactivées avec `prefers-reduced-motion` |
 | Hero panoramique Maroc avec les 4 produits | Oui ; titre HTML modifiable |
 | Produits 250 ml / 500 ml / 750 ml / bidon 5 L | Oui |
-| Prix CNY grands, USD petits ; aucun EUR public | Oui ; **fixes manuels** |
+| Prix CNY grands, USD petits ; aucun EUR public | **Modifié à la demande du client (nov. 2026)** : CNY principal, équivalents USD et EUR en dessous |
 | MOQ **global de 7 500 L**, une section unique | Oui |
 | Mélange de formats de bouteilles | Oui |
 | Fouad + producteurs voisins ; traçabilité de lots | Oui |
@@ -119,7 +125,7 @@ Les deux modèles HTML complets, réglages et aperçus sont dans [emailjs-templa
 | Formulaire de devis | Oui ; EmailJS après configuration du compte |
 | Pages confidentialité / mentions légales / conditions | Oui ; **textes à valider** |
 | SEO chinois, métadonnées, responsive | Oui ; vérifier le domaine de production |
-| Back-office, taux ECB, conversion automatique | **Supprimés sur instruction du client** |
+| Back-office, taux ECB, conversion automatique | Back-office non requis ; **taux BCE et conversion automatique USD/EUR réintroduits à la demande du client (nov. 2026)**, avec repli manuel |
 | PostgreSQL, Prisma, API Node | **Non requis et retirés** |
 
 Les valeurs initiales sont livrées dans `dist/config/prices.json` et peuvent être remplacées sans modifier le HTML du site.

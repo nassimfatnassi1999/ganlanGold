@@ -9,12 +9,50 @@ import { BilingualHeading } from "@/components/ui/BilingualHeading";
 import type { PublicProduct } from "@/components/sections/PublicExperience";
 import { TranslatedText } from "@/i18n/TranslatedText";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
-import { loadPriceConfig, type PriceConfig } from "@/lib/prices";
+import { loadPriceConfig, type PriceConfig, type RuntimePrice } from "@/lib/prices";
+import {
+  convertCny,
+  loadExchangeRates,
+  readStoredExchangeRates,
+  storeExchangeRates,
+  type ExchangeRates,
+} from "@/lib/exchangeRates";
 
 type PriceState =
   | Readonly<{ status: "loading" }>
   | Readonly<{ status: "loaded"; prices: PriceConfig }>
   | Readonly<{ status: "unavailable" }>;
+
+/** live = today's feed; cached = last valid feed in this browser; manual = values from prices.json. */
+type RateState =
+  | Readonly<{ status: "loading" }>
+  | Readonly<{ status: "live"; rates: ExchangeRates }>
+  | Readonly<{ status: "cached"; rates: ExchangeRates }>
+  | Readonly<{ status: "manual" }>;
+
+function equivalents(price: RuntimePrice, rateState: RateState) {
+  if (rateState.status === "live" || rateState.status === "cached") {
+    return { usd: convertCny(price.cny, rateState.rates.usd), eur: convertCny(price.cny, rateState.rates.eur) };
+  }
+  if (rateState.status === "manual") return { usd: price.usd, eur: price.eur };
+  return null;
+}
+
+function RateNote({ rateState }: Readonly<{ rateState: RateState }>) {
+  if (rateState.status === "live" || rateState.status === "cached") {
+    const key = rateState.status === "live" ? "rateLive" : "rateCached";
+    const date = rateState.rates.date;
+    return (
+      <p className="rate-date">
+        <TranslatedText zh={zh.products[key].replace("{date}", date)} en={en.products[key].replace("{date}", date)} />
+      </p>
+    );
+  }
+  if (rateState.status === "manual") {
+    return <p className="rate-date"><TranslatedText zh={zh.products.rateManual} en={en.products.rateManual} /></p>;
+  }
+  return null;
+}
 
 function capacityLabel(id: PublicProduct["id"]) {
   return id === "5l" ? "5 L" : id.replace("ml", " ml");
@@ -22,6 +60,7 @@ function capacityLabel(id: PublicProduct["id"]) {
 
 export function ProductShowcase({ products }: { products: readonly PublicProduct[] }) {
   const [priceState, setPriceState] = useState<PriceState>({ status: "loading" });
+  const [rateState, setRateState] = useState<RateState>({ status: "loading" });
 
   useEffect(() => {
     const controller = new AbortController();
@@ -30,6 +69,21 @@ export function ProductShowcase({ products }: { products: readonly PublicProduct
       .catch((error: unknown) => {
         if (error instanceof DOMException && error.name === "AbortError") return;
         setPriceState({ status: "unavailable" });
+      });
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    loadExchangeRates(controller.signal)
+      .then((rates) => {
+        storeExchangeRates(rates);
+        setRateState({ status: "live", rates });
+      })
+      .catch(() => {
+        if (controller.signal.aborted) return;
+        const stored = readStoredExchangeRates();
+        setRateState(stored ? { status: "cached", rates: stored } : { status: "manual" });
       });
     return () => controller.abort();
   }, []);
@@ -49,6 +103,7 @@ export function ProductShowcase({ products }: { products: readonly PublicProduct
         <div className="product-list">
           {products.map((product, index) => {
             const price = priceState.status === "loaded" ? priceState.prices[product.id] : null;
+            const converted = price ? equivalents(price, rateState) : null;
             return (
               <ScrollReveal
                 as="article"
@@ -75,7 +130,15 @@ export function ProductShowcase({ products }: { products: readonly PublicProduct
                     {price ? (
                       <>
                         <p className="price-cny">¥{price.cny}</p>
-                        <p className="price-usd"><TranslatedText zh={zh.products.referenceUsd} en={en.products.referenceUsd} /> · USD ${price.usd}</p>
+                        {converted ? (
+                          <>
+                            <p className="price-equivalents">
+                              <span className="price-usd">≈ USD ${converted.usd}</span>
+                              <span className="price-eur">≈ EUR €{converted.eur}</span>
+                            </p>
+                            <RateNote rateState={rateState} />
+                          </>
+                        ) : null}
                       </>
                     ) : (
                       <p className="price-unavailable">
@@ -94,7 +157,24 @@ export function ProductShowcase({ products }: { products: readonly PublicProduct
             );
           })}
         </div>
+        <PricingTerms />
       </div>
     </section>
+  );
+}
+
+/** Wholesale pricing terms: Chinese first with the English underneath; English only in EN mode. */
+function PricingTerms() {
+  return (
+    <aside className="pricing-terms">
+      <div className="pricing-terms__zh language-content--zh" lang="zh-CN">
+        <h3 className="pricing-terms__title">{zh.products.terms.title}</h3>
+        {zh.products.terms.paragraphs.map((text) => <p key={text}>{text}</p>)}
+      </div>
+      <div className="pricing-terms__en" lang="en">
+        <p className="pricing-terms__title">{en.products.terms.title}</p>
+        {en.products.terms.paragraphs.map((text) => <p key={text}>{text}</p>)}
+      </div>
+    </aside>
   );
 }

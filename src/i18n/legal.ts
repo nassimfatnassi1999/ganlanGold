@@ -25,6 +25,12 @@ export const privacySections: readonly LegalSection[] = [
     enBody: "The website has no database or form-receiving backend. EmailJS, the connected email provider and authorized business recipients process submitted requests, potentially across borders. If you choose WhatsApp or WeChat, that platform processes your message under its policies.",
   },
   {
+    zhTitle: "汇率服务",
+    enTitle: "Exchange-rate service",
+    zhBody: "为显示美元和欧元参考等值，您的浏览器会向 Frankfurter 汇率服务（api.frankfurter.dev）请求欧洲央行公开参考汇率。该请求不包含任何表单信息；与其他网页请求一样，该服务可接收您的 IP 地址和浏览器信息。最近一次有效汇率仅保存在您的浏览器中。",
+    enBody: "To show USD and EUR reference equivalents, your browser requests public European Central Bank reference rates from the Frankfurter exchange-rate service (api.frankfurter.dev). The request contains no form data; like any web request, that service receives your IP address and browser details. The last valid rate is stored only in your browser.",
+  },
+  {
     zhTitle: "保留、更正与删除",
     enTitle: "Retention and your choices",
     zhBody: "本站本身不持久保存表单内容。提交后，邮件及相关记录的保留取决于 EmailJS、邮件服务和业务接收方的政策；其他通信平台适用各自政策。您可通过公开联系方式申请查询、更正或删除；详细法律文本仍需审核。",
@@ -60,8 +66,8 @@ export const legalNoticeSections: readonly LegalSection[] = [
   {
     zhTitle: "责任边界",
     enTitle: "Limitations",
-    zhBody: "手工设置的人民币参考金额仅作指示，最终商业条件以双方确认的美元报价及适用 Incoterm 为准。外部通信服务、银行、承运人与海关机构不由本网站控制。",
-    enBody: "Manually maintained CNY amounts are indicative only. Final commercial terms are governed by the agreed USD quotation and applicable Incoterm. This website does not control external communication services, banks, carriers, or customs authorities.",
+    zhBody: "手工设置的人民币参考金额及自动换算的美元、欧元等值仅作指示，最终商业条件以双方确认的美元报价及适用 Incoterm 为准。外部通信服务、银行、承运人与海关机构不由本网站控制。",
+    enBody: "Manually maintained CNY amounts and automatically converted USD and EUR equivalents are indicative only. Final commercial terms are governed by the agreed USD quotation and applicable Incoterm. This website does not control external communication services, banks, carriers, or customs authorities.",
   },
 ];
 
@@ -75,8 +81,8 @@ export const termsSections: readonly LegalSection[] = [
   {
     zhTitle: "价格与汇率",
     enTitle: "Prices and exchange rates",
-    zhBody: "人民币和美元价格均为手工维护的固定参考值，不进行自动汇率计算。最终报价以美元确认，除非报价另有说明，正式报价有效期为 15 天。",
-    enBody: "CNY and USD prices are fixed reference values maintained manually; no automatic exchange-rate calculation is used. Final quotations are confirmed in USD and remain valid for 15 days unless the quotation states otherwise.",
+    zhBody: "人民币价格为人工维护的批发参考价格，可根据订购数量协商。美元和欧元等值根据欧洲央行参考汇率自动换算，仅供参考；如汇率服务暂不可用，则显示最近一次有效汇率（并标明日期）或人工设定的参考值。最终报价以美元确认，除非报价另有说明，正式报价有效期为 15 天。",
+    enBody: "CNY prices are indicative wholesale reference prices maintained manually and negotiable according to order volume. USD and EUR equivalents are converted automatically from European Central Bank reference rates for information only; if the rate service is unavailable, the last valid rate (with its date) or manually set reference values are shown. Final quotations are confirmed in USD and remain valid for 15 days unless the quotation states otherwise.",
   },
   {
     zhTitle: "交付与费用",

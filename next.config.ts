@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-/** Pure static site: no server, database, APIs or runtime currency feed. */
+/** Pure static site: no server, database or back-end API. USD/EUR rates are fetched in the browser. */
 const nextConfig: NextConfig = {
   output: "export",
   trailingSlash: true,

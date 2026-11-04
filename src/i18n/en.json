@@ -27,12 +27,14 @@
     "eyebrow": "Four formats",
     "title": "Prepared for professional channels",
     "subtitle": "Four formats for professional buyers",
-    "intro": "CNY and USD are fixed indicative prices updated manually. Final quotations are confirmed in USD.",
+    "intro": "Prices are set in CNY. USD and EUR equivalents are converted automatically at the European Central Bank reference rate, for reference only. Final quotations are confirmed in USD.",
     "label": "Moroccan extra virgin olive oil",
-    "indicative": "Indicative CNY price · Fixed",
-    "referenceUsd": "Reference USD",
+    "indicative": "Indicative wholesale price · Negotiable by order volume",
     "priceLoading": "Loading prices…",
     "priceUnavailable": "Price temporarily unavailable",
+    "rateLive": "Converted at the ECB reference rate of {date}",
+    "rateCached": "Rate update unavailable · ECB reference rate of {date}",
+    "rateManual": "USD and EUR are manually set reference equivalents",
     "request": "Request this format",
     "professional": "For professional customers",
     "descriptions": {
@@ -40,6 +42,14 @@
       "500ml": "A core bottle format balancing retail presentation and household use.",
       "750ml": "A classic bottle format for higher-volume retail demand.",
       "5l": "A larger tin for food service, professional kitchens and other professional purchasing needs."
+    },
+    "terms": {
+      "title": "Indicative wholesale export prices from Morocco, negotiable according to order volume.",
+      "paragraphs": [
+        "We also supply extra virgin olive oil in bulk at more competitive prices, without individual bottles, caps or labels.",
+        "Minimum order: 7,500 litres. Different bottle sizes can be combined.",
+        "International freight, Chinese import duties and taxes are excluded. Final prices are subject to quotation."
+      ]
     }
   },
   "wholesale": {

@@ -2,10 +2,18 @@ import type { ProductId } from "@/lib/products/catalog";
 
 const PRODUCT_IDS = ["250ml", "500ml", "750ml", "5l"] as const satisfies readonly ProductId[];
 
+/**
+ * One product price from `config/prices.json`.
+ * `cny` is the main price. `usd` and `eur` are manual reference equivalents,
+ * shown only when live exchange rates cannot be loaded.
+ */
 export type RuntimePrice = Readonly<{
   cny: number;
   usd: string;
+  eur: string;
 }>;
+
+const AMOUNT_PATTERN = /^(0|[1-9]\d*)\.\d{2}$/;
 
 export type PriceConfig = Readonly<Record<ProductId, RuntimePrice>>;
 
@@ -18,9 +26,10 @@ export function parsePriceConfig(value: unknown): PriceConfig | null {
 
   for (const id of PRODUCT_IDS) {
     const price = value[id];
-    if (!isRecord(price) || Object.keys(price).length !== 2) return null;
+    if (!isRecord(price) || Object.keys(price).length !== 3) return null;
     if (!Number.isSafeInteger(price.cny) || (price.cny as number) <= 0) return null;
-    if (typeof price.usd !== "string" || !/^(0|[1-9]\d*)\.\d{2}$/.test(price.usd)) return null;
+    if (typeof price.usd !== "string" || !AMOUNT_PATTERN.test(price.usd)) return null;
+    if (typeof price.eur !== "string" || !AMOUNT_PATTERN.test(price.eur)) return null;
   }
 
   return value as PriceConfig;

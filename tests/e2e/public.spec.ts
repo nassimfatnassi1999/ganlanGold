@@ -3,7 +3,9 @@ import { expect, test } from "@playwright/test";
 test("public page exposes the complete Chinese-first journey", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1, name: "来自摩洛哥的天然馈赠" })).toBeVisible();
-  await expect(page.getByRole("region", { name: "为不同专业渠道而备" }).getByRole("heading", { level: 3 })).toHaveCount(4);
+  const products = page.getByRole("region", { name: "为不同专业渠道而备" });
+  await expect(products.getByRole("article").getByRole("heading", { level: 3 })).toHaveCount(4);
+  await expect(products.getByRole("heading", { level: 3, name: "批发参考价格 · 根据订购数量可议价" })).toBeVisible();
   await expect(page.getByRole("region", { name: "统一的商业起订政策" })).toContainText("7,500");
   await expect(page.getByRole("region", { name: "从广州到摩洛哥，直接开始沟通" }).getByRole("heading", { level: 3 })).toHaveText([
     "Gisèle",
@@ -12,7 +14,8 @@ test("public page exposes the complete Chinese-first journey", async ({ page }) 
   ]);
   await page.getByRole("link", { name: /申请询价/ }).first().click();
   await expect(page.locator("#quote")).toBeInViewport();
-  await expect(page.locator("body")).not.toContainText("EUR");
+  // EUR appears only as a reference equivalent under each CNY price (live ECB rate or manual fallback).
+  await expect(page.locator(".price-eur")).toHaveCount(4, { timeout: 10_000 });
 });
 
 test("mobile navigation reaches every section without horizontal overflow", async ({ page, isMobile }) => {
