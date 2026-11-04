@@ -136,7 +136,6 @@ export function ProductShowcase({ products }: { products: readonly PublicProduct
                               <span className="price-usd">≈ USD ${converted.usd}</span>
                               <span className="price-eur">≈ EUR €{converted.eur}</span>
                             </p>
-                            <RateNote rateState={rateState} />
                           </>
                         ) : null}
                       </>
