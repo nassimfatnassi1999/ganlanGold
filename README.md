@@ -15,9 +15,11 @@ Le panorama d'accueil utilise **la dernière image GANLAN GOLD sans titre à gau
 
 Toutes les images publiées sont centralisées dans `public/images/`. Les versions produit dérivées des images officielles du PDF sont disponibles en WebP/AVIF ; les fichiers WebP qui ont servi de base sont conservés dans `docs/image-sources/`. Les QR codes officiels restent en PNG, sans modification.
 
-## 2. Modifier les quatre prix après déploiement — sans build
+## 2. Modifier les quatre prix — chaque jour, sans build
 
-**Fichier unique à modifier sur le site déployé : `config/prices.json`.** Dans la livraison locale, il se trouve ici : `dist/config/prices.json`.
+**Hébergement actuel : Tencent COS Hong Kong + CDN EdgeOne (`https://www.ganlangold.com`).** Guide complet, diagnostic de la panne « 价格暂不可用 » du 4 novembre 2026 et réglages du cache : [docs/TENCENT_COS_EDGEONE.md](docs/TENCENT_COS_EDGEONE.md).
+
+Les prix sont lus par le navigateur dans **`config/prices.json`** à chaque visite (avec un paramètre anti-cache). Changer ce fichier suffit : aucun build n'est nécessaire.
 
 ```json
 {
@@ -28,27 +30,25 @@ Toutes les images publiées sont centralisées dans `public/images/`. Les versio
 }
 ```
 
-Pour changer les tarifs après la mise en ligne :
+Trois façons de le modifier, de la plus sûre à la moins sûre :
 
-1. Modifier `dist/config/prices.json` avec un éditeur de texte.
-2. Envoyer uniquement ce fichier sur Gandi à l’emplacement `config/prices.json`, en remplaçant l’ancien.
-3. Recharger la page. Le site ajoute automatiquement un paramètre anti-cache et `.htaccess` demande également à l’hébergement Apache/Gandi de ne pas conserver une ancienne version.
+1. **Formulaire GitHub (recommandé)** : onglet **Actions** → **Mettre à jour les prix** → **Run workflow** → saisir les prix CNY. Le workflow vérifie les valeurs, recalcule USD/EUR au taux BCE, enregistre le fichier dans Git, l'envoie sur COS et vide le cache EdgeOne. Configuration unique : [section 4 du guide Tencent](docs/TENCENT_COS_EDGEONE.md#4-configurer-le-déploiement-automatique-github--cos--edgeone).
+2. **Éditeur hors ligne** : ouvrir `outils/editeur-prix.html` (double-clic), saisir les prix, télécharger `prices.json`, puis le déposer dans le dossier `config/` du bucket COS. Le fichier produit est toujours valide.
+3. **Ligne de commande** : `npx tsx scripts/update-prices.ts --750ml 45` (vérifie, recalcule USD/EUR, écrit `public/config/prices.json` et `dist/config/prices.json`).
 
-Il ne faut **ni relancer `npm run build`, ni retransférer tout `dist/`** pour une simple modification de prix.
+**Source unique : `public/config/prices.json` dans Git.** Les méthodes 1 et 3 la mettent à jour automatiquement. Avec la méthode 2, remplacer aussi ce fichier dans le dépôt, sinon le prochain build remettrait les anciens prix.
 
-Règles à respecter : conserver exactement les quatre références ; saisir `cny` comme entier positif ; conserver `usd` et `eur` entre guillemets avec deux décimales. Si le fichier est absent ou invalide, le site affiche « prix temporairement indisponible » au lieu d’un ancien montant.
+Règles du fichier publié (vérifiées par les outils, `npm run build` et `npx tsx scripts/update-prices.ts --check`) : les quatre références exactes ; `cny` nombre entier positif sans guillemets ; `usd` et `eur` entre guillemets avec deux décimales.
+
+**Le navigateur, lui, est tolérant**, pour qu'une page ancienne restée en cache ne casse plus jamais l'affichage : champs ou clés inconnus ignorés, nombres écrits avec ou sans guillemets acceptés (`6.3` → `6.30`), clés `750ML` ou `5L` reconnues. Seul un produit sans prix CNY utilisable affiche « prix temporairement indisponible », sur sa propre carte uniquement ; aucun montant n'est jamais deviné. La requête est réessayée deux fois en cas de coupure réseau et abandonnée après 8 secondes par tentative.
 
 **Le prix CNY est le prix principal** (prix de gros indicatifs export depuis le Maroc, négociables selon le volume). Sous chaque prix, le site affiche les équivalents USD et EUR :
 
-1. **Conversion automatique** : le navigateur récupère les taux de référence quotidiens de la BCE (CNY→USD et CNY→EUR) via l’API gratuite Frankfurter (`api.frankfurter.dev`, sans clé) et affiche la date du taux.
-2. **Dernier taux valide** : si le service ne répond pas, le dernier taux reçu par ce navigateur est réutilisé, avec sa date.
-3. **Valeurs manuelles** : sinon (par exemple si le service est inaccessible depuis certains réseaux en Chine continentale), le site affiche les montants `usd` et `eur` de `prices.json`. Il faut donc les tenir à jour approximativement lors de chaque changement de prix CNY.
+1. **Conversion automatique** : le navigateur récupère les taux de référence quotidiens de la BCE (CNY→USD et CNY→EUR) via l'API gratuite Frankfurter (`api.frankfurter.dev`, sans clé).
+2. **Dernier taux valide** : si le service ne répond pas, le dernier taux reçu par ce navigateur est réutilisé.
+3. **Valeurs de secours** : sinon (par exemple si le service est inaccessible depuis certains réseaux en Chine continentale), le site affiche les montants `usd` et `eur` de `prices.json`. Le workflow GitHub les actualise chaque jour ouvré.
 
-Le délai d’attente du service est de 6 secondes ; le prix CNY s’affiche toujours sans attendre. Les prix restent indicatifs ; le devis final est confirmé en USD, habituellement pour 15 jours sauf indication contraire. Le texte « 批发参考价格 · 根据订购数量可议价 » (offre en vrac, MOQ, exclusions) se modifie dans `src/i18n/zh-CN.json` et `src/i18n/en.json` (`products.terms`), puis nécessite un build.
-
-Lors d’une future reconstruction complète du code, `public/config/prices.json` est la copie source automatiquement placée dans `dist/config/prices.json`.
-
-**Avant une future reconstruction complète :** si les prix ont été modifiés sur Gandi, téléchargez d’abord le fichier déployé `config/prices.json` et remplacez `public/config/prices.json` par cette version. La commande de build recrée entièrement `dist/` ; sans cette synchronisation, elle remettrait les valeurs présentes dans `public/config/prices.json`.
+Le texte « 批发参考价格 · 根据订购数量可议价 » (offre en vrac, MOQ, exclusions) se modifie dans `src/i18n/zh-CN.json` et `src/i18n/en.json` (`products.terms`), puis nécessite un build.
 
 ## 3. Développement et reconstruction (sur Mac)
 
@@ -70,7 +70,7 @@ npm run build
 
 La commande utilise **Next.js static export** (`output: "export"`) puis copie les fichiers de `out/` dans **`dist/`**. Aucun serveur Node ni base de données ne sont requis pour servir ces fichiers. Cette compilation n’est pas nécessaire pour une simple modification de `prices.json`.
 
-Optionnel, renseigner l'URL publique *avant* le build pour les métadonnées SEO :
+L'URL publique utilisée pour le SEO (balise canonique, `robots.txt`, `sitemap.xml`) est `https://www.ganlangold.com` par défaut. Pour un autre domaine, la renseigner *avant* le build :
 
 ```bash
 NEXT_PUBLIC_SITE_URL=https://votre-domaine.tld npm run build
@@ -79,6 +79,8 @@ NEXT_PUBLIC_SITE_URL=https://votre-domaine.tld npm run build
 Ce domaine est un exemple : **n'utilisez pas une fausse URL en production**.
 
 ## 4. Déploiement Netlify, Alibaba Cloud OSS et Gandi
+
+**Tencent COS + EdgeOne (hébergement actuel)** : déploiement automatique par GitHub Actions (`.github/workflows/deploy.yml`) ou manuel, réglages du cache et purge : [docs/TENCENT_COS_EDGEONE.md](docs/TENCENT_COS_EDGEONE.md). Après tout envoi manuel de pages sur COS, **vider le cache EdgeOne** (Hostname, méthode Delete), sinon le CDN peut continuer à servir l'ancienne page.
 
 **Netlify** : le fichier `netlify.toml` définit `npm run build` et le dossier publié `dist`. Aucune variable EmailJS n'est requise. **Alibaba Cloud OSS Hong Kong** : téléverser le contenu de `dist/`, activer les index de sous-dossiers et configurer le cache des JSON. Les étapes complètes figurent dans [docs/STATIC_DEPLOYMENT.md](docs/STATIC_DEPLOYMENT.md).
 
@@ -164,8 +166,9 @@ npm test
 npm run typecheck
 npm run lint
 npm run test:e2e
-NEXT_PUBLIC_SITE_URL=https://ganlan.netlify.app npm run build
+npm run build
 npm run verify:static
+npx tsx scripts/update-prices.ts --check
 ```
 
 Les réponses EmailJS sont simulées dans les tests, sans envoi réel. Pour vérifier les fichiers exportés eux-mêmes, servir `dist/` avec un serveur statique et définir `PLAYWRIGHT_BASE_URL` : [instructions](docs/STATIC_DEPLOYMENT.md). Le build remplace `dist/` : synchroniser d'abord les JSON de configuration déployés vers `public/config/`.

@@ -1,0 +1,13 @@
+{
+  "name": "ganlan-gold-tencent-deploy",
+  "private": true,
+  "type": "module",
+  "description": "Upload dist/ to Tencent COS and purge the EdgeOne cache (used by GitHub Actions).",
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "cos-nodejs-sdk-v5": "3.0.0",
+    "tencentcloud-sdk-nodejs-teo": "4.1.339"
+  }
+}

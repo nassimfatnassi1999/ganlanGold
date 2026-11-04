@@ -82,7 +82,7 @@ Référence : [hébergement statique OSS, règles de sous-dossier et domaine per
 
 EmailJS : modifier les quatre identifiants publics dans `src/config/env.ts`, exécuter `npm run build` et redéployer tout `dist/`, selon [EMAILJS_CONFIGURATION.md](EMAILJS_CONFIGURATION.md). Ne jamais modifier directement les fichiers JavaScript hachés.
 
-Prix : modifier `dist/config/prices.json` et téléverser le même chemin. Conserver exactement les quatre références, avec `cny` entier positif et `usd` / `eur` chaînes décimales à deux chiffres :
+Prix : la méthode recommandée (formulaire GitHub, éditeur hors ligne, Tencent COS + EdgeOne) est décrite dans [TENCENT_COS_EDGEONE.md](TENCENT_COS_EDGEONE.md). À défaut, modifier `dist/config/prices.json` et téléverser le même chemin. Conserver exactement les quatre références, avec `cny` entier positif et `usd` / `eur` chaînes décimales à deux chiffres :
 
 ```json
 {

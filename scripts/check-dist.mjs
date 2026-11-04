@@ -1,5 +1,6 @@
 import { EMAILJS_CONFIG } from "../src/config/env.ts";
 import { isEmailJSConfigured } from "../src/config/emailjs.ts";
+import { findPriceFileErrors } from "../src/lib/prices.ts";
 /** Verify the standalone static export and its bundled public EmailJS settings. */
 import { readFile, access, readdir } from "node:fs/promises";
 const dir = new URL("../dist/", import.meta.url);
@@ -7,7 +8,6 @@ const html = await readFile(new URL("index.html", dir), "utf8");
 const prices = JSON.parse(
   await readFile(new URL("config/prices.json", dir), "utf8"),
 );
-const productIds = ["250ml", "500ml", "750ml", "5l"];
 function check(condition, message) {
   if (!condition) throw new Error(`Static validation failed: ${message}`);
   console.log(`✓ ${message}`);
@@ -26,21 +26,16 @@ for (const url of [
 ]) {
   await access(new URL(url, dir));
 }
+const priceErrors = findPriceFileErrors(prices);
 check(
-  Object.keys(prices).length === productIds.length &&
-    productIds.every((id) => {
-      const price = prices[id];
-      return (
-        price &&
-        Object.keys(price).length === 3 &&
-        Number.isSafeInteger(price.cny) &&
-        price.cny > 0 &&
-        ["usd", "eur"].every((currency) =>
-          typeof price[currency] === "string" &&
-          /^(0|[1-9]\d*)\.\d{2}$/.test(price[currency]))
-      );
-    }),
-  "Editable runtime price configuration is valid",
+  priceErrors.length === 0,
+  priceErrors.length
+    ? `Editable runtime price configuration is valid:\n  - ${priceErrors.join("\n  - ")}`
+    : "Editable runtime price configuration is valid",
+);
+check(
+  !html.includes("http://localhost:3000"),
+  "SEO links use the public domain, not localhost",
 );
 check(
   (html.match(/class="price-block"/g) || []).length === 4,

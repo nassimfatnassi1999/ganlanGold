@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Éditeur de prix GANLAN GOLD</title>
+<style>
+  :root { --bg: #f7f4ec; --card: #fff; --ink: #1f2a1c; --muted: #5d6658; --line: #d9d3c3; --gold: #9a7a2f; --ok: #2f6b3a; --err: #a12d2d; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  p.lead { color: var(--muted); margin: 0 0 20px; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  h2 { font-size: 1rem; margin: 0 0 12px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--line); }
+  th { font-size: .85rem; color: var(--muted); font-weight: 600; }
+  td:first-child { white-space: nowrap; }
+  input[type=text] { width: 100%; padding: 8px; border: 1px solid var(--line); border-radius: 6px; font: inherit; }
+  input.bad { border-color: var(--err); background: #fff3f3; }
+  button { font: inherit; padding: 9px 14px; border-radius: 6px; border: 1px solid var(--gold); background: var(--gold); color: #fff; cursor: pointer; }
+  button.secondary { background: transparent; color: var(--gold); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .note { font-size: .9rem; color: var(--muted); }
+  .status { margin-top: 10px; font-size: .95rem; }
+  .status.ok { color: var(--ok); } .status.err { color: var(--err); white-space: pre-line; }
+  pre { background: #f2efe6; border-radius: 6px; padding: 12px; overflow-x: auto; font-size: .85rem; }
+  ol { padding-left: 20px; margin: 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Éditeur de prix GANLAN GOLD</h1>
+  <p class="lead">Produit un fichier <code>prices.json</code> toujours valide. Rien n'est envoyé : la page fonctionne sur votre ordinateur.</p>
+
+  <section>
+    <h2>1. Partir du fichier actuel (facultatif)</h2>
+    <div class="row">
+      <input type="file" id="file" accept=".json,application/json">
+    </div>
+    <p class="note">Choisir le <code>prices.json</code> téléchargé depuis COS (dossier <code>config/</code>) pour pré-remplir le tableau.</p>
+  </section>
+
+  <section>
+    <h2>2. Saisir les prix</h2>
+    <table>
+      <thead><tr><th>Produit</th><th>CNY (entier)</th><th>USD de secours</th><th>EUR de secours</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="row" style="margin-top:12px">
+      <button type="button" class="secondary" id="rates">Calculer USD / EUR au taux BCE du jour</button>
+    </div>
+    <p class="note">Le site convertit déjà le CNY en direct. USD et EUR ne servent que si ce service est inaccessible pour le visiteur ; il suffit qu'ils soient à peu près justes.</p>
+    <div id="status" class="status" role="status"></div>
+  </section>
+
+  <section>
+    <h2>3. Télécharger puis publier</h2>
+    <div class="row"><button type="button" id="download">Télécharger prices.json</button></div>
+    <pre id="preview"></pre>
+    <ol class="note">
+      <li>Console Tencent COS → bucket du site → dossier <code>config/</code> → Upload → remplacer <code>prices.json</code>.</li>
+      <li>Le nouveau prix s'affiche au prochain chargement de la page (le site ajoute un paramètre anti-cache).</li>
+      <li>Pour garder l'historique, remplacer aussi <code>public/config/prices.json</code> dans le dépôt Git.</li>
+    </ol>
+  </section>
+</main>
+<script>
+  const PRODUCTS = [
+    ["250ml", "250 ml", 16, "2.35", "2.15"],
+    ["500ml", "500 ml", 30, "4.40", "4.02"],
+    ["750ml", "750 ml", 43, "6.30", "5.77"],
+    ["5l", "Bidon 5 L", 220, "32.30", "29.50"],
+  ];
+  const RATES_URL = "https://api.frankfurter.dev/v2/providers/ecb/rates?base=CNY&quotes=USD,EUR";
+  const AMOUNT = /^(0|[1-9]\d*)\.\d{2}$/;
+  const rows = document.getElementById("rows");
+  const statusBox = document.getElementById("status");
+  const preview = document.getElementById("preview");
+  const downloadButton = document.getElementById("download");
+
+  for (const [id, label, cny, usd, eur] of PRODUCTS) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${label}</td>` +
+      `<td><input type="text" inputmode="numeric" data-id="${id}" data-field="cny" value="${cny}" aria-label="${label} CNY"></td>` +
+      `<td><input type="text" inputmode="decimal" data-id="${id}" data-field="usd" value="${usd}" aria-label="${label} USD"></td>` +
+      `<td><input type="text" inputmode="decimal" data-id="${id}" data-field="eur" value="${eur}" aria-label="${label} EUR"></td>`;
+    rows.append(tr);
+  }
+  const input = (id, field) => rows.querySelector(`input[data-id="${id}"][data-field="${field}"]`);
+
+  /** Accepte "6,3", "6.3" ou "6.30" et renvoie "6.30" ; null si invalide. */
+  function normalizeAmount(text) {
+    const value = text.trim().replace(",", ".");
+    if (!/^\d+(\.\d{1,2})?$/.test(value) || Number(value) <= 0) return null;
+    return Number(value).toFixed(2);
+  }
+
+  function build() {
+    const errors = [];
+    const data = {};
+    for (const [id, label] of PRODUCTS) {
+      const cnyBox = input(id, "cny");
+      const cnyText = cnyBox.value.trim();
+      const cnyOk = /^[1-9]\d*$/.test(cnyText);
+      cnyBox.classList.toggle("bad", !cnyOk);
+      if (!cnyOk) errors.push(`${label} : le prix CNY doit être un nombre entier positif (ex. 43).`);
+      const entry = { cny: cnyOk ? Number(cnyText) : 0 };
+      for (const currency of ["usd", "eur"]) {
+        const box = input(id, currency);
+        const amount = normalizeAmount(box.value);
+        box.classList.toggle("bad", amount === null);
+        if (amount === null) errors.push(`${label} : ${currency.toUpperCase()} doit être un montant positif (ex. 6.30).`);
+        entry[currency] = amount ?? "";
+      }
+      data[id] = entry;
+    }
+    const lines = PRODUCTS.map(([id]) =>
+      `  ${JSON.stringify(id)}: { "cny": ${data[id].cny}, "usd": ${JSON.stringify(data[id].usd)}, "eur": ${JSON.stringify(data[id].eur)} }`);
+    return { errors, json: `{\n${lines.join(",\n")}\n}\n` };
+  }
+
+  function refresh() {
+    const { errors, json } = build();
+    preview.textContent = errors.length ? "" : json;
+    downloadButton.disabled = errors.length > 0;
+    statusBox.className = `status ${errors.length ? "err" : "ok"}`;
+    statusBox.textContent = errors.length ? errors.join("\n") : "Fichier valide, prêt à être téléchargé.";
+  }
+
+  rows.addEventListener("input", refresh);
+
+  document.getElementById("rates").addEventListener("click", async () => {
+    statusBox.className = "status";
+    statusBox.textContent = "Récupération du taux BCE…";
+    try {
+      const response = await fetch(RATES_URL, { signal: AbortSignal.timeout(10000) });
+      const quotes = await response.json();
+      const usd = quotes.find((row) => row.quote === "USD")?.rate;
+      const eur = quotes.find((row) => row.quote === "EUR")?.rate;
+      if (!(usd > 0.05 && usd < 0.5 && eur > 0.05 && eur < 0.5)) throw new Error("réponse inattendue");
+      for (const [id] of PRODUCTS) {
+        const cny = Number(input(id, "cny").value.trim());
+        if (!Number.isFinite(cny) || cny <= 0) continue;
+        input(id, "usd").value = (Math.round(cny * usd * 100) / 100).toFixed(2);
+        input(id, "eur").value = (Math.round(cny * eur * 100) / 100).toFixed(2);
+      }
+      refresh();
+      statusBox.textContent += ` Taux BCE du ${quotes[0].date} : 1 CNY = ${usd} USD = ${eur} EUR.`;
+    } catch (error) {
+      refresh();
+      statusBox.className = "status err";
+      statusBox.textContent = `Taux BCE inaccessible (${error.message}). Saisir USD et EUR à la main.`;
+    }
+  });
+
+  document.getElementById("file").addEventListener("change", async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const data = JSON.parse((await file.text()).replace(/^﻿/, ""));
+      for (const [id] of PRODUCTS) {
+        const entry = data[id];
+        if (!entry) continue;
+        for (const field of ["cny", "usd", "eur"]) if (entry[field] !== undefined) input(id, field).value = String(entry[field]);
+      }
+      refresh();
+    } catch (error) {
+      statusBox.className = "status err";
+      statusBox.textContent = `Ce fichier n'est pas un JSON valide : ${error.message}`;
+    }
+  });
+
+  downloadButton.addEventListener("click", () => {
+    const { errors, json } = build();
+    if (errors.length) return refresh();
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+    link.download = "prices.json";
+    link.click();
+    URL.revokeObjectURL(link.href);
+  });
+
+  refresh();
+</script>
+</body>
+</html>

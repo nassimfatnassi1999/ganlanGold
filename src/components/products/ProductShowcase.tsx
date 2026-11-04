@@ -9,7 +9,7 @@ import { BilingualHeading } from "@/components/ui/BilingualHeading";
 import type { PublicProduct } from "@/components/sections/PublicExperience";
 import { TranslatedText } from "@/i18n/TranslatedText";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
-import { loadPriceConfig, type PriceConfig, type RuntimePrice } from "@/lib/prices";
+import { formatCny, loadPriceConfig, type PriceConfig, type RuntimePrice } from "@/lib/prices";
 import {
   convertCny,
   loadExchangeRates,
@@ -30,27 +30,12 @@ type RateState =
   | Readonly<{ status: "cached"; rates: ExchangeRates }>
   | Readonly<{ status: "manual" }>;
 
-function equivalents(price: RuntimePrice, rateState: RateState) {
+/** USD / EUR shown under the CNY price; a currency is left out when no trustworthy value exists. */
+function equivalents(price: RuntimePrice, rateState: RateState): { usd: string | null; eur: string | null } | null {
   if (rateState.status === "live" || rateState.status === "cached") {
     return { usd: convertCny(price.cny, rateState.rates.usd), eur: convertCny(price.cny, rateState.rates.eur) };
   }
-  if (rateState.status === "manual") return { usd: price.usd, eur: price.eur };
-  return null;
-}
-
-function RateNote({ rateState }: Readonly<{ rateState: RateState }>) {
-  if (rateState.status === "live" || rateState.status === "cached") {
-    const key = rateState.status === "live" ? "rateLive" : "rateCached";
-    const date = rateState.rates.date;
-    return (
-      <p className="rate-date">
-        <TranslatedText zh={zh.products[key].replace("{date}", date)} en={en.products[key].replace("{date}", date)} />
-      </p>
-    );
-  }
-  if (rateState.status === "manual") {
-    return <p className="rate-date"><TranslatedText zh={zh.products.rateManual} en={en.products.rateManual} /></p>;
-  }
+  if (rateState.status === "manual" && (price.usd || price.eur)) return { usd: price.usd, eur: price.eur };
   return null;
 }
 
@@ -66,8 +51,9 @@ export function ProductShowcase({ products }: { products: readonly PublicProduct
     const controller = new AbortController();
     loadPriceConfig(controller.signal)
       .then((prices) => setPriceState({ status: "loaded", prices }))
-      .catch((error: unknown) => {
-        if (error instanceof DOMException && error.name === "AbortError") return;
+      .catch(() => {
+        // Only an unmount cancels the request; a timeout or error shows "price unavailable".
+        if (controller.signal.aborted) return;
         setPriceState({ status: "unavailable" });
       });
     return () => controller.abort();
@@ -102,7 +88,7 @@ export function ProductShowcase({ products }: { products: readonly PublicProduct
         <p className="section-intro section-intro--center"><TranslatedText zh={zh.products.intro} en={en.products.intro} /></p>
         <div className="product-list">
           {products.map((product, index) => {
-            const price = priceState.status === "loaded" ? priceState.prices[product.id] : null;
+            const price = priceState.status === "loaded" ? priceState.prices[product.id] ?? null : null;
             const converted = price ? equivalents(price, rateState) : null;
             return (
               <ScrollReveal
@@ -129,14 +115,12 @@ export function ProductShowcase({ products }: { products: readonly PublicProduct
                     <p className="price-label"><TranslatedText zh={zh.products.indicative} en={en.products.indicative} /></p>
                     {price ? (
                       <>
-                        <p className="price-cny">¥{price.cny}</p>
+                        <p className="price-cny">¥{formatCny(price.cny)}</p>
                         {converted ? (
-                          <>
-                            <p className="price-equivalents">
-                              <span className="price-usd">≈ USD ${converted.usd}</span>
-                              <span className="price-eur">≈ EUR €{converted.eur}</span>
-                            </p>
-                          </>
+                          <p className="price-equivalents">
+                            {converted.usd ? <span className="price-usd">≈ USD ${converted.usd}</span> : null}
+                            {converted.eur ? <span className="price-eur">≈ EUR €{converted.eur}</span> : null}
+                          </p>
                         ) : null}
                       </>
                     ) : (
