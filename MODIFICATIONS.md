@@ -1,3 +1,53 @@
+# Modifications du 6 novembre 2026 — design 3D au défilement, vidéos et objets 3D
+
+Demande : rendre le site « 3D » pendant le défilement (vers le bas et vers le haut), en s'inspirant des animations *3D scroll* de Dribbble, sur le thème de l'huile et de l'olive, avec vidéos, objets 3D et images générées, **en gardant toutes les photos de produits existantes**.
+
+## Ce qui a été ajouté
+
+| Élément | Détail |
+|---|---|
+| **Section « Le voyage d'une olive »** (`#journey`) | Nouvelle scène WebGL fixée à l'écran, juste après l'accueil. 4 étapes liées au défilement : olives qui flottent → elles se rassemblent en goutte d'huile dorée → la goutte se verse dans une bouteille 750 ml en 3D portant la **vraie étiquette** → la bouteille tourne entourée d'anneaux dorés. Remonter la page rejoue l'animation à l'envers. Textes chinois/anglais. |
+| **Accueil 3D** | Le panorama s'enfonce et s'agrandit, le titre bascule en perspective, 5 objets 3D (olives, feuilles, goutte) flottent à des profondeurs différentes. |
+| **Cartes produits 3D** | Les 4 photos produits d'origine (inchangées) pivotent en 3D selon la position, avec reflet lumineux, halo doré, olives 3D en orbite et grand chiffre de contenance en filigrane. |
+| **2 vidéos** | « Or liquide » (huile en macro, section Commande minimale) et « Lumière sur l'oliveraie » (section Visite). Boucles parfaites, WebM + MP4, chargement différé. |
+| **Autres effets** | Photo Origine inclinée avec parallaxe et rameau 3D ; frise Export qui se remplit d'or ; olives 3D dans la section Devis ; jauge dorée de lecture sous l'en-tête ; indicateur « faire défiler ». |
+| **Images générées** | `public/images/3d/` : 10 rendus 3D WebP transparents (5–30 Ko). |
+
+## Corrections
+
+- **Texte de l'accueil sur les bouteilles** : sur grand écran, le paragraphe d'introduction passait sur la bouteille 500 ml du panorama. Largeur limitée au-dessus de 980 px.
+- **README** : référence à un fichier inexistant (`public/interactive/olive-journey.js`) remplacée par la description réelle de l'intermède ; `static/site.css` remplacé par `_next/static/` ; signalement que le dossier `.github/workflows/` mentionné (formulaire de prix, déploiement automatique) **n'est pas dans ce dépôt**.
+- **Envoi COS des vidéos** : `scripts/tencent/cache-rules.mjs` ne connaissait pas `.mp4`/`.webm` ; ils seraient partis en `application/octet-stream` sans cache (lecture impossible sur Safari/iPhone). Types `video/mp4` et `video/webm` ajoutés, cache 7 jours comme les images, test unitaire ajouté.
+- **Parallaxe de l'accueil** : l'ancienne animation `animation-timeline` (Chrome uniquement) est remplacée par le moteur de défilement commun, qui fonctionne aussi sur Safari et Firefox.
+
+## Fichiers ajoutés
+
+| Fichier | Rôle |
+|---|---|
+| `src/components/journey/OilJourney.tsx`, `journeyScene.ts` | Section 3D et sa scène three.js (chargée seulement à l'approche). |
+| `src/lib/three/models.ts` | Modèles 3D par code : olives, feuilles, goutte, bouteille 750 ml, lumières. |
+| `src/components/motion/ScrollEffects.tsx` | Moteur de défilement unique (variable CSS `--fx`). |
+| `src/components/motion/AmbientVideo.tsx`, `Sprite.tsx` | Vidéo décorative différée ; objet 3D décoratif. |
+| `src/app/experience-3d.css` | Tous les styles 3D. |
+| `public/images/3d/*`, `public/media/*` | Rendus 3D, étiquette déroulée, vidéos et posters. |
+| `scripts/media/` | Générateurs : `render-media.mjs`, `extract-label.py`, scènes `sprites.ts`, `liquid-gold.ts`, `grove-light.ts`. |
+| `tests/e2e/experience3d.spec.ts` | 7 tests : position de la section, défilement aller/retour, mouvement réduit, sans JavaScript, photos produits inchangées, vidéos, moteur de défilement. |
+
+Fichiers modifiés : `PublicExperience.tsx`, `ProductShowcase.tsx`, `layout.tsx`, `globals.css`, `zh-CN.json`, `en.json` (textes `journey`), `package.json` (dépendance `three` 0.187.0, test e2e ajouté), `scripts/tencent/cache-rules.mjs`, `tests/unit/prices.test.ts`, `README.md` (section 7 bis), `docs/ASSET_INVENTORY.md`, `.gitignore`, `dist/` (reconstruit).
+
+## Accessibilité, performance, Chine continentale
+
+- Aucune ressource externe ni CDN : three.js est inclus dans le build (≈ 145 Ko gzip) et **chargé seulement quand on fait défiler vers la scène**. Le poids initial de la page ne change presque pas.
+- « Réduire les animations » : pas de WebGL ni de vidéo, image fixe de la bouteille, textes lisibles. Sans JavaScript : textes et image fixe présents.
+- La scène 3D ne calcule que lorsqu'elle est visible ; qualité réduite sur mobile. Les vidéos ne se téléchargent qu'à l'approche, restent muettes, s'arrêtent hors écran et en mode économie de données.
+- La scène porte la mention « 3D 示意动画，非产品照片 / 3D illustration, not a product photo ».
+
+## Mise en ligne
+
+Comme d'habitude : envoyer **tout le contenu de `dist/`** (nouveaux dossiers `media/` et `images/3d/` inclus) sur COS, puis **vider le cache EdgeOne**. `config/prices.json` n'a pas changé.
+
+---
+
 # Modifications du 4 novembre 2026 — prix fiables et mise à jour quotidienne
 
 ## Ce qui ne marchait pas

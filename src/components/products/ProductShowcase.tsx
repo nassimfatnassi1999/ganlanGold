@@ -9,6 +9,7 @@ import { BilingualHeading } from "@/components/ui/BilingualHeading";
 import type { PublicProduct } from "@/components/sections/PublicExperience";
 import { TranslatedText } from "@/i18n/TranslatedText";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import { Sprite, type SpriteName } from "@/components/motion/Sprite";
 import { formatCny, loadPriceConfig, type PriceConfig, type RuntimePrice } from "@/lib/prices";
 import {
   convertCny,
@@ -42,6 +43,14 @@ function equivalents(price: RuntimePrice, rateState: RateState): { usd: string |
 function capacityLabel(id: PublicProduct["id"]) {
   return id === "5l" ? "5 L" : id.replace("ml", " ml");
 }
+
+/** Decorative 3D renders orbiting each (unchanged) product photograph. */
+const PRODUCT_SPRITES: Record<PublicProduct["id"], readonly [SpriteName, SpriteName]> = {
+  "250ml": ["olive-green-a", "leaf-a"],
+  "500ml": ["olive-ripe", "leaf-b"],
+  "750ml": ["olive-turning", "oil-drop"],
+  "5l": ["sprig", "olive-green-b"],
+};
 
 export function ProductShowcase({ products }: { products: readonly PublicProduct[] }) {
   const [priceState, setPriceState] = useState<PriceState>({ status: "loading" });
@@ -97,14 +106,23 @@ export function ProductShowcase({ products }: { products: readonly PublicProduct
                 direction={index % 2 ? "right" : "left"}
                 key={product.id}
               >
-                <div className={`product-visual${product.id === "5l" ? " product-visual--tin" : ""}`}>
-                  <Image
-                    src={product.imagePath}
-                    fill
-                    sizes="(max-width: 767px) calc(100vw - 40px), (max-width: 1280px) 46vw, 580px"
-                    loading="lazy"
-                    alt={`${capacityLabel(product.id)} ${zh.products.label}`}
-                  />
+                <div className="product-stage" data-scroll-fx="">
+                  <span className="product-ghost" aria-hidden="true">{capacityLabel(product.id).replace(" ", "")}</span>
+                  <span className="product-halo" aria-hidden="true" />
+                  <div className="product-tilt">
+                    <div className={`product-visual${product.id === "5l" ? " product-visual--tin" : ""}`}>
+                      <Image
+                        src={product.imagePath}
+                        fill
+                        sizes="(max-width: 767px) calc(100vw - 40px), (max-width: 1280px) 46vw, 580px"
+                        loading="lazy"
+                        alt={`${capacityLabel(product.id)} ${zh.products.label}`}
+                      />
+                      <span className="product-sheen" aria-hidden="true" />
+                    </div>
+                  </div>
+                  <Sprite name={PRODUCT_SPRITES[product.id][0]} className="product-float product-float--a" />
+                  <Sprite name={PRODUCT_SPRITES[product.id][1]} className="product-float product-float--b" />
                 </div>
                 <div className="product-copy">
                   <p className="product-kicker">GANLAN GOLD · <TranslatedText zh={zh.products.label} en={en.products.label} /></p>

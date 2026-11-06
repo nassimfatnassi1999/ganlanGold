@@ -1,6 +1,6 @@
 # GANLAN GOLD — Site vitrine B2B statique — Netlify / Alibaba Cloud OSS / Gandi
 
-**Projet mis à jour le 27 octobre 2026**, à partir du projet livré et du cahier des charges `GANLAN_GOLD_Website_Developer_Specification_EN_V7.pdf`.
+**Projet mis à jour le 27 octobre 2026, puis le 6 novembre 2026 (expérience 3D au défilement, voir section 7 bis)**, à partir du projet livré et du cahier des charges `GANLAN_GOLD_Website_Developer_Specification_EN_V7.pdf`.
 
 Site premium destiné aux importateurs professionnels d'huile d'olive marocaine, avec **chinois simplifié par défaut et interface anglaise complète sélectionnable**. Le choix `中文 | EN` est mémorisé localement dans le navigateur. Le site est **statique**, sans base de données, Prisma, PostgreSQL, back-office ni API applicative. Les équivalents USD et EUR sont calculés dans le navigateur à partir des taux de référence de la BCE (voir section 2).
 
@@ -32,7 +32,7 @@ Les prix sont lus par le navigateur dans **`config/prices.json`** à chaque visi
 
 Trois façons de le modifier, de la plus sûre à la moins sûre :
 
-1. **Formulaire GitHub (recommandé)** : onglet **Actions** → **Mettre à jour les prix** → **Run workflow** → saisir les prix CNY. Le workflow vérifie les valeurs, recalcule USD/EUR au taux BCE, enregistre le fichier dans Git, l'envoie sur COS et vide le cache EdgeOne. Configuration unique : [section 4 du guide Tencent](docs/TENCENT_COS_EDGEONE.md#4-configurer-le-déploiement-automatique-github--cos--edgeone).
+1. **Formulaire GitHub (recommandé, si `.github/workflows/update-prices.yml` est présent — il manque dans ce dépôt)** : onglet **Actions** → **Mettre à jour les prix** → **Run workflow** → saisir les prix CNY. Le workflow vérifie les valeurs, recalcule USD/EUR au taux BCE, enregistre le fichier dans Git, l'envoie sur COS et vide le cache EdgeOne. Configuration unique : [section 4 du guide Tencent](docs/TENCENT_COS_EDGEONE.md#4-configurer-le-déploiement-automatique-github--cos--edgeone).
 2. **Éditeur hors ligne** : ouvrir `outils/editeur-prix.html` (double-clic), saisir les prix, télécharger `prices.json`, puis le déposer dans le dossier `config/` du bucket COS. Le fichier produit est toujours valide.
 3. **Ligne de commande** : `npx tsx scripts/update-prices.ts --750ml 45` (vérifie, recalcule USD/EUR, écrit `public/config/prices.json` et `dist/config/prices.json`).
 
@@ -80,13 +80,13 @@ Ce domaine est un exemple : **n'utilisez pas une fausse URL en production**.
 
 ## 4. Déploiement Netlify, Alibaba Cloud OSS et Gandi
 
-**Tencent COS + EdgeOne (hébergement actuel)** : déploiement automatique par GitHub Actions (`.github/workflows/deploy.yml`) ou manuel, réglages du cache et purge : [docs/TENCENT_COS_EDGEONE.md](docs/TENCENT_COS_EDGEONE.md). Après tout envoi manuel de pages sur COS, **vider le cache EdgeOne** (Hostname, méthode Delete), sinon le CDN peut continuer à servir l'ancienne page.
+**Tencent COS + EdgeOne (hébergement actuel)** : déploiement automatique par GitHub Actions (`.github/workflows/deploy.yml` — **attention : le dossier `.github/` n'est pas présent dans ce dépôt ; le recréer avant d'utiliser cette méthode**) ou manuel, réglages du cache et purge : [docs/TENCENT_COS_EDGEONE.md](docs/TENCENT_COS_EDGEONE.md). Après tout envoi manuel de pages sur COS, **vider le cache EdgeOne** (Hostname, méthode Delete), sinon le CDN peut continuer à servir l'ancienne page.
 
 **Netlify** : le fichier `netlify.toml` définit `npm run build` et le dossier publié `dist`. Aucune variable EmailJS n'est requise. **Alibaba Cloud OSS Hong Kong** : téléverser le contenu de `dist/`, activer les index de sous-dossiers et configurer le cache des JSON. Les étapes complètes figurent dans [docs/STATIC_DEPLOYMENT.md](docs/STATIC_DEPLOYMENT.md).
 
 1. Dans Gandi, associer le domaine à un hébergement web prenant en charge les **fichiers HTML/CSS/JS statiques**, et activer **HTTPS**.
 2. Envoyer **le contenu de `dist/`** (et non le dossier lui-même) dans le répertoire racine web du domaine — souvent `htdocs/`, `www/` ou un répertoire défini par l'offre Gandi.
-3. Vérifier la présence à la racine de `index.html`, `static/site.css` ou de la feuille CSS exportée, `images/`, `privacy/`, `legal/` et `terms/`.
+3. Vérifier la présence à la racine de `index.html`, `_next/static/` (JavaScript et CSS exportés), `images/`, `media/` (vidéos), `config/`, `privacy/`, `legal/` et `terms/`.
 4. Tester `https://votre-domaine.tld/`, puis `.../privacy/`, `.../legal/`, `.../terms/`.
 5. Tester sur smartphone, l'ouverture des QR codes WeChat, les liens téléphone et WhatsApp et le formulaire de devis.
 
@@ -144,7 +144,39 @@ Le site ne charge aucune image depuis la racine du dépôt : toutes les ressourc
 
 Les photos produits extraites du PDF restent limitées par la résolution d'origine, **362×439 à 420×439 px**. Leur agrandissement améliore le confort d'affichage mais **ne restaure pas de véritables détails haute définition** ; des photos originales HD doivent les remplacer pour une publicité ou une impression grand format.
 
-**Nouvelle animation olive → huile :** `public/interactive/olive-journey.js` et `.css` (copiés sous `dist/interactive/`). Cette illustration SVG autonome et légère montre des branches d'olivier, une bouteille stylisée qui s'incline et un filet d'huile pendant le défilement. Elle est désactivée pour les utilisateurs ayant activé « Réduire les animations ». Elle n'est ni une nouvelle affirmation commerciale ni une photographie de produit.
+**Intermède branches d'olivier :** `src/components/sections/OliveScrollSection.tsx` (+ `useOliveScroll.ts`, `.module.css`) — trois branches détourées (`public/images/olives/`) et une goutte d'huile qui bougent pendant le défilement, entre « Origine » et « Visite ». Désactivé avec « Réduire les animations ». Ce n'est ni une affirmation commerciale ni une photographie de produit.
+
+## 7 bis. Expérience 3D au défilement (6 novembre 2026)
+
+Inspirée des animations « 3D scroll » (Dribbble) : le site raconte le passage **olive → goutte d'huile → bouteille** pendant le défilement. Tout est lié à la position de la page : en remontant, l'animation se rejoue à l'envers. **Toutes les photos produits existantes sont conservées sans modification** (mêmes fichiers `public/images/products/*`).
+
+| Où | Effet | Fichiers |
+|---|---|---|
+| Accueil | Le panorama s'enfonce en profondeur, le titre bascule en 3D ; olives, feuilles et goutte rendues en 3D flottent à différentes profondeurs (flou de profondeur) | `PublicExperience.tsx`, `experience-3d.css` |
+| **Nouvelle section « Le voyage d'une olive »** (`#journey`, après l'accueil) | Scène WebGL (three.js) fixée à l'écran sur 4 étapes : nuage d'olives → les olives se rassemblent en goutte dorée → la goutte se verse dans une bouteille 750 ml en 3D **portant la vraie étiquette** → la bouteille tourne avec des anneaux dorés. Textes chinois/anglais en HTML | `src/components/journey/OilJourney.tsx`, `journeyScene.ts`, `src/lib/three/models.ts` |
+| Produits | Chaque photo devient une carte 3D qui pivote avec le défilement, reflet lumineux mobile, halo doré, olives 3D en orbite, grand chiffre de contenance en filigrane | `ProductShowcase.tsx` |
+| Commande minimale (MOQ) | Vidéo en boucle « or liquide » (huile en macro) derrière le texte | `public/media/liquid-gold.*` |
+| Origine | Photo inclinée en 3D, parallaxe intérieure, rameau 3D au premier plan | `PublicExperience.tsx` |
+| Visite | Vidéo en boucle « lumière sur l'oliveraie » (rayons et pollen sur le panorama approuvé, sans emballage) | `public/media/grove-light.*` |
+| Export | La ligne dorée de la frise se remplit comme un filet d'huile | `experience-3d.css` |
+| Demande de devis | Olives et goutte 3D en parallaxe | `PublicExperience.tsx` |
+| En-tête | Jauge dorée de progression de lecture | `experience-3d.css` |
+
+**Moteur :** un seul écouteur de défilement passif (`src/components/motion/ScrollEffects.tsx`) écrit `--fx` sur les éléments `data-scroll-fx` ; le CSS transforme ce nombre en rotations 3D. Aucun détournement du défilement, aucune bibliothèque externe chargée depuis un CDN (important pour la Chine continentale) : three.js est inclus dans le build et **chargé seulement à l'approche de la section 3D** (≈ 145 Ko gzip).
+
+**Accessibilité et performances :**
+- « Réduire les animations » : pas de WebGL, pas de vidéo, une image fixe de la bouteille ; tous les textes restent lisibles.
+- Sans JavaScript : les 4 textes et l'image fixe s'affichent.
+- La scène 3D ne calcule que lorsqu'elle est visible et s'arrête dans un onglet en arrière-plan ; qualité réduite sur mobile.
+- Les vidéos (`preload="none"`) ne se téléchargent qu'à l'approche de leur section, sont muettes, en pause hors écran et désactivées en mode « économie de données ». WebM + MP4 + image d'attente.
+- Mention « 3D 示意动画，非产品照片 / 3D illustration, not a product photo » affichée sur la scène.
+
+**Images et vidéos générées par code** (aucune banque d'images, aucun droit tiers) :
+- `public/images/3d/` : olives (verte, tournante, mûre), feuilles, rameau, goutte d'huile, bouteille 750 ml — rendus three.js, WebP transparent, 5 à 30 Ko chacun.
+- `public/images/3d/label-750ml.webp` : l'étiquette **officielle** extraite de `product-750ml.webp` et « déroulée » pour envelopper la bouteille 3D (`scripts/media/extract-label.py`).
+- `public/media/liquid-gold.{webm,mp4}` (≈ 1,2–1,4 Mo, 8 s) et `grove-light.{webm,mp4}` (≈ 0,5–0,7 Mo, 10 s), boucles parfaites + posters.
+
+**Régénérer les médias** (facultatif) : `python3 scripts/media/extract-label.py` puis `node scripts/media/render-media.mjs` (ou `… sprites`, `… liquid-gold`, `… grove-light`, `--preview` pour une seule image dans `scripts/media/preview/`). Nécessite Chromium de Playwright (`npx playwright install chromium`) et `ffmpeg` (libx264, libvpx-vp9, libwebp). Les réglages des scènes sont dans `scripts/media/scenes/`.
 
 ## 8. Avant mise en ligne commerciale : validations restantes
 
@@ -162,6 +194,7 @@ Les photos produits extraites du PDF restent limitées par la résolution d'orig
 
 ```bash
 npm ci
+npx playwright install chromium   # une seule fois, pour les tests navigateur
 npm test
 npm run typecheck
 npm run lint

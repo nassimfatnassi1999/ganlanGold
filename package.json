@@ -8,7 +8,7 @@
     "build": "next build && node scripts/copy-out-to-dist.mjs && tsx scripts/check-dist.mjs",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
-    "test:e2e": "playwright test tests/e2e/public.spec.ts tests/e2e/forms.spec.ts tests/e2e/prices.spec.ts tests/e2e/release.spec.ts tests/e2e/olive.spec.ts",
+    "test:e2e": "playwright test tests/e2e/public.spec.ts tests/e2e/forms.spec.ts tests/e2e/prices.spec.ts tests/e2e/release.spec.ts tests/e2e/olive.spec.ts tests/e2e/experience3d.spec.ts",
     "preview": "npx serve dist",
     "verify:static": "tsx scripts/check-dist.mjs",
     "test": "tsx --test tests/unit/*.test.ts && npm run verify:emailjs",
@@ -21,7 +21,8 @@
     "lucide-react": "1.61.0",
     "next": "16.4.3",
     "react": "19.3.1",
-    "react-dom": "19.3.1"
+    "react-dom": "19.3.1",
+    "three": "0.187.0"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",
@@ -29,6 +30,7 @@
     "@types/node": "26.6.5",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "@types/three": "0.187.0",
     "eslint": "9.39.5",
     "eslint-config-next": "16.4.3",
     "tailwindcss": "4.3.3",

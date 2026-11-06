@@ -5,6 +5,7 @@ import { buildSiteJsonLd, serializeJsonLd } from "@/lib/seo/json-ld";
 import { getSiteUrl } from "@/lib/seo/site-url";
 import { LanguageProvider } from "@/i18n/LanguageProvider";
 import "./globals.css";
+import "./experience-3d.css";
 
 const siteUrl = getSiteUrl();
 

@@ -14,6 +14,10 @@ import { BilingualHeading } from "@/components/ui/BilingualHeading";
 import { TranslatedText } from "@/i18n/TranslatedText";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { OliveScrollSection } from "@/components/sections/OliveScrollSection";
+import { OilJourney } from "@/components/journey/OilJourney";
+import { ScrollEffects } from "@/components/motion/ScrollEffects";
+import { AmbientVideo } from "@/components/motion/AmbientVideo";
+import { Sprite } from "@/components/motion/Sprite";
 
 export type PublicProduct = ProductSpec & Readonly<{ zhDescription: string; enDescription: string }>;
 
@@ -29,7 +33,7 @@ export function PublicExperience({ products }: { products: readonly PublicProduc
     <>
       <SiteHeader />
       <main id="main-content">
-        <section id="top" className="hero" aria-label="GANLAN GOLD">
+        <section id="top" className="hero" aria-label="GANLAN GOLD" data-scroll-fx="">
           <picture className="hero-picture">
             <source media="(max-width: 767px)" type="image/avif" srcSet={`/${ASSET_PATHS.hero.mobileAvif}`} />
             <source media="(max-width: 767px)" type="image/webp" srcSet={`/${ASSET_PATHS.hero.mobileWebp}`} />
@@ -37,6 +41,13 @@ export function PublicExperience({ products }: { products: readonly PublicProduc
             <img src={`/${ASSET_PATHS.hero.desktopWebp}`} alt="" fetchPriority="high" width="1672" height="940" />
           </picture>
           <div className="hero-overlay" />
+          <div className="hero-floats" aria-hidden="true">
+            <Sprite name="olive-ripe" className="hero-float hero-float--1" />
+            <Sprite name="leaf-a" className="hero-float hero-float--2" />
+            <Sprite name="olive-green-a" className="hero-float hero-float--3" />
+            <Sprite name="oil-drop" className="hero-float hero-float--4" />
+            <Sprite name="leaf-b" className="hero-float hero-float--5" />
+          </div>
           <div className="hero-content">
             <p className="hero-eyebrow"><TranslatedText zh={zh.hero.eyebrow} en={en.hero.eyebrow} /></p>
             <p className="hero-brand">GANLAN GOLD</p>
@@ -48,11 +59,16 @@ export function PublicExperience({ products }: { products: readonly PublicProduc
             </div>
           </div>
           <div className="hero-note" aria-hidden="true"><span>01</span><i /><span>04</span></div>
+          <a className="hero-scroll" href="#journey" aria-hidden="true" tabIndex={-1}><span /></a>
         </section>
+
+        <OilJourney />
 
         <ProductShowcase products={products} />
 
-        <section id="wholesale" className="section wholesale-section" aria-labelledby="wholesale-title">
+        <section id="wholesale" className="section wholesale-section" aria-labelledby="wholesale-title" data-scroll-fx="">
+          <AmbientVideo name="liquid-gold" className="section-video wholesale-video" />
+          <div className="wholesale-shade" aria-hidden="true" />
           <div className="wholesale-ornament" aria-hidden="true" />
           <div className="wholesale-inner">
             <p className="section-eyebrow"><TranslatedText zh={zh.wholesale.eyebrow} en={en.wholesale.eyebrow} /></p>
@@ -64,16 +80,21 @@ export function PublicExperience({ products }: { products: readonly PublicProduc
 
         <section id="origin" className="section origin-section" aria-labelledby="origin-title">
           <div className="section-inner origin-grid">
-            <ScrollReveal className="origin-image-wrap" direction="left">
-              <Image
-                src={`/${ASSET_PATHS.groves.origin}`}
-                fill
-                sizes="(max-width: 767px) 100vw, 48vw"
-                alt="摩洛哥山地橄榄园 / Moroccan mountain olive groves"
-                className="origin-image"
-              />
-              <div className="origin-stamp"><MapPin aria-hidden="true" /><span>Morocco</span></div>
-            </ScrollReveal>
+            <div className="origin-tilt" data-scroll-fx="">
+              <ScrollReveal className="origin-image-wrap" direction="left">
+                <div className="origin-parallax">
+                  <Image
+                    src={`/${ASSET_PATHS.groves.origin}`}
+                    fill
+                    sizes="(max-width: 767px) 100vw, 48vw"
+                    alt="摩洛哥山地橄榄园 / Moroccan mountain olive groves"
+                    className="origin-image"
+                  />
+                </div>
+                <div className="origin-stamp"><MapPin aria-hidden="true" /><span>Morocco</span></div>
+              </ScrollReveal>
+              <Sprite name="sprig" className="origin-sprig" />
+            </div>
             <ScrollReveal className="origin-copy" direction="right" delay={90}>
               <BilingualHeading id="origin-title" eyebrow={zh.origin.eyebrow} englishEyebrow={en.origin.eyebrow} title={zh.origin.title} english={en.origin.title} />
               <p className="section-body"><TranslatedText zh={zh.origin.body} en={en.origin.body} /></p>
@@ -88,6 +109,8 @@ export function PublicExperience({ products }: { products: readonly PublicProduc
         <OliveScrollSection />
 
         <section id="visit" className="section visit-section" aria-labelledby="visit-title">
+          <AmbientVideo name="grove-light" className="section-video visit-video" />
+          <div className="visit-shade" aria-hidden="true" />
           <div className="section-inner">
             <div className="visit-intro">
               <BilingualHeading id="visit-title" eyebrow={zh.visit.eyebrow} englishEyebrow={en.visit.eyebrow} title={zh.visit.title} english={en.visit.title} light />
@@ -100,7 +123,7 @@ export function PublicExperience({ products }: { products: readonly PublicProduc
         <section id="export" className="section export-section" aria-labelledby="export-title">
           <div className="section-inner">
             <BilingualHeading id="export-title" eyebrow={zh.export.eyebrow} englishEyebrow={en.export.eyebrow} title={zh.export.title} english={en.export.title} align="center" />
-            <ol className="export-timeline">
+            <ol className="export-timeline" data-scroll-fx="">
               {exportSteps.map(([Icon, chinese, english], index) => (
                 <ScrollReveal as="li" key={chinese} delay={index * 55}>
                   <span className="export-number">0{index + 1}</span>
@@ -145,7 +168,12 @@ export function PublicExperience({ products }: { products: readonly PublicProduc
           </div>
         </section>
 
-        <section id="quote" className="section quote-section" aria-labelledby="quote-title">
+        <section id="quote" className="section quote-section" aria-labelledby="quote-title" data-scroll-fx="">
+          <div className="quote-floats" aria-hidden="true">
+            <Sprite name="olive-green-b" className="quote-float quote-float--1" />
+            <Sprite name="oil-drop" className="quote-float quote-float--2" />
+            <Sprite name="olive-turning" className="quote-float quote-float--3" />
+          </div>
           <div className="section-inner quote-grid">
             <div className="quote-intro">
               <BilingualHeading id="quote-title" eyebrow={zh.quote.eyebrow} englishEyebrow={en.quote.eyebrow} title={zh.quote.title} english={en.quote.title} light />
@@ -159,6 +187,7 @@ export function PublicExperience({ products }: { products: readonly PublicProduc
         </section>
       </main>
       <SiteFooter />
+      <ScrollEffects />
     </>
   );
 }

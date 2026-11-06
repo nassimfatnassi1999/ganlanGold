@@ -23,6 +23,30 @@
     "quote": "Request a Quote",
     "explore": "Explore Products"
   },
+  "journey": {
+    "eyebrow": "From olive to liquid gold",
+    "caption": "3D illustration, not a product photo",
+    "scroll": "Scroll",
+    "explore": "View the four formats",
+    "steps": [
+      {
+        "title": "The journey of an olive",
+        "body": "Under the Moroccan mountain sun, olives ripen slowly on the branch."
+      },
+      {
+        "title": "Harvested and pressed",
+        "body": "Harvested olives are pressed into oil — this is where every golden drop begins."
+      },
+      {
+        "title": "Bottling coordination",
+        "body": "Bottling and quality-control preparation are coordinated for each order, lot by lot."
+      },
+      {
+        "title": "Four formats, ready to ship",
+        "body": "250 ml, 500 ml and 750 ml bottles, plus a 5 L professional tin for different channels."
+      }
+    ]
+  },
   "products": {
     "eyebrow": "Four formats",
     "title": "Prepared for professional channels",

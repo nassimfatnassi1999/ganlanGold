@@ -98,6 +98,8 @@ test("COS cache headers keep pages and prices fresh and hashed assets long-lived
   assert.equal(headersFor("_next/static/chunks/14r7kmwuxmx69.js").CacheControl, CACHE.immutable);
   assert.equal(headersFor("images/products/product-750ml.avif").ContentType, "image/avif");
   assert.equal(headersFor("images/products/product-750ml.avif").CacheControl, CACHE.image);
+  assert.deepEqual(headersFor("media/liquid-gold.mp4"), { ContentType: "video/mp4", CacheControl: CACHE.image });
+  assert.deepEqual(headersFor("media/grove-light.webm"), { ContentType: "video/webm", CacheControl: CACHE.image });
   assert.ok(isPage("index.html") && isPage("sitemap.xml") && isPage("config/prices.json"));
   assert.ok(!isPage("_next/static/chunks/a.js") && !isPage("images/qr/fouad-wechat.png"));
 });

@@ -27,6 +27,8 @@ const TYPES = {
   ".ico": "image/x-icon",
   ".woff2": "font/woff2",
   ".woff": "font/woff",
+  ".mp4": "video/mp4",
+  ".webm": "video/webm",
 };
 
 /** En-têtes HTTP de chaque objet, selon son chemin dans le bucket. */
@@ -35,7 +37,7 @@ export function headersFor(key) {
   let cache = CACHE.page;
   if (key.startsWith("_next/static/")) cache = CACHE.immutable;
   else if (key.startsWith("config/")) cache = CACHE.prices;
-  else if (type.startsWith("image/") || type.startsWith("font/")) cache = CACHE.image;
+  else if (type.startsWith("image/") || type.startsWith("font/") || type.startsWith("video/")) cache = CACHE.image;
   return { ContentType: type, CacheControl: cache };
 }
 

@@ -1,6 +1,6 @@
 # GANLAN GOLD — Inventaire des ressources visuelles
 
-Audit mis à jour le 26 octobre 2026.
+Audit mis à jour le 26 octobre 2026 ; ressources 3D et vidéos ajoutées le 6 novembre 2026.
 
 ## Source métier conservée
 
@@ -18,10 +18,14 @@ Toutes les images chargées à l’exécution sont centralisées dans `public/im
 | `public/images/qr/` | QR WeChat de Lassad et Fouad en PNG | Cartes de contact |
 | `public/images/brand/` | Motif d’olives en SVG | Texture décorative |
 | `public/images/olives/` | Trois branches photoréalistes isolées, WebP transparents 480 / 800 px | Interlude animé entre Origine et Visite |
+| `public/images/3d/` | Rendus 3D par code (three.js) : 4 olives, 2 feuilles, rameau, goutte d'huile, bouteille 750 ml ; étiquette 750 ml « déroulée » depuis la photo officielle | Calques de profondeur (accueil, produits, origine, devis), image fixe et texture de la scène 3D |
+| `public/media/` | Vidéos en boucle `liquid-gold` et `grove-light` (WebM + MP4) et leurs posters WebP | Fonds animés des sections Commande minimale et Visite |
 
 Les chemins applicatifs sont regroupés dans `src/lib/assets.ts`. Les deux images employées directement depuis CSS sont `olive-pattern.svg` et `olive-grove-atmosphere.webp`.
 
 Les trois compositions `branch-left`, `branch-center` et `branch-right` ont été générées avec imagegen le 27 octobre 2026 pour cet interlude décoratif. Elles ne représentent pas une photographie documentaire de la récolte. Les fichiers WebP conservent la transparence, réservent une marge autour des feuilles et totalisent environ 141 Ko en version mobile et 309 Ko en version desktop. Aucun service d’images externe n’est utilisé au chargement.
+
+Les ressources de `public/images/3d/` et `public/media/` (6 novembre 2026) sont **générées par code** — modèles three.js et shaders rendus dans Chromium, encodés avec ffmpeg — par `scripts/media/render-media.mjs` ; l’étiquette est extraite de la photo produit 750 ml par `scripts/media/extract-label.py`. La vidéo `grove-light` anime uniquement la partie paysage du panorama approuvé (sans emballage). Aucune banque d’images ni service d’IA externe n’a été utilisé.
 
 ## Fichiers volontairement absents
 
